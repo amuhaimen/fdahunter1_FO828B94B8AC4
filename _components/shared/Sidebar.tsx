@@ -6,7 +6,7 @@ import logo from "@/public/sideber/images/logo.png";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 // import { CookieHelper } from "@/helper/cookie.helper";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 import DashboardIcon from "../icons/sidebar/DashboardIcon";
 import StaticsIcon from "../icons/sidebar/StaticsIcon";
 import WalletIcon from "../icons/sidebar/WalletIcon";
@@ -26,7 +26,7 @@ const menuItems = [
     title: "Users",
     icon: UsersIcon,
     href: "/dashboard/users",
-  }
+  },
 ];
 
 // Define sub-items for each main menu item if needed
@@ -57,7 +57,7 @@ const subItems: Record<string, any[]> = {
 // Bottom menu items
 const bottomMenuItems = [
   { title: "Settings", icon: SettingsIcon, href: "/dashboard/settings" },
-  { title: "Logout", icon:  LogoutIcon, href: "#", isAction: true },
+  { title: "Logout", icon: LogoutIcon, href: "#", isAction: true },
 ];
 
 interface SidebarProps {
@@ -108,22 +108,22 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     return isMenuItemActive(itemHref) || isActiveParent(itemHref);
   };
 
-//   const handleLogout = () => {
-//     // Perform logout actions
-//     CookieHelper.destroy({ key: 'access_token' });
-//     toast.success('Successfully Logged Out', {
-//       duration: 3000,
-//       iconTheme: {
-//         primary: "#2d6bb4",
-//         secondary: "#FFFFFF",
-//       },
-//     });
-//     router.push("/");
-//   };
+  //   const handleLogout = () => {
+  //     // Perform logout actions
+  //     CookieHelper.destroy({ key: 'access_token' });
+  //     toast.success('Successfully Logged Out', {
+  //       duration: 3000,
+  //       iconTheme: {
+  //         primary: "#2d6bb4",
+  //         secondary: "#FFFFFF",
+  //       },
+  //     });
+  //     router.push("/");
+  //   };
 
-  const handleBottomItemClick = (item: typeof bottomMenuItems[0]) => {
+  const handleBottomItemClick = (item: (typeof bottomMenuItems)[0]) => {
     if (item.isAction && item.title === "Logout") {
-    //   handleLogout();
+      //   handleLogout();
     }
     onClose(); // Close sidebar on mobile after clicking
   };
@@ -137,12 +137,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           w-65  flex flex-col bg-[#181a25] border-r border-[#323B49]`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#323B49]">
+        <div className="flex items-center justify-between py-5 px-6 border-b border-[#323B49]">
           {/* Logo */}
           <div className="flex items-center">
             <Link href="#" className="cursor-pointer">
               {/* <Image src={logo} alt="logo" width={78} height={40} priority /> */}
-              <h1 className=" text-4xl font-bold text-white">LOGO</h1>
+              <h1 className=" text-3xl font-bold text-white">LOGO</h1>
             </Link>
           </div>
 
@@ -170,16 +170,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   onClick={onClose}
                   onMouseEnter={() => setHoveredItem(item.title)}
                   onMouseLeave={() => setHoveredItem(null)}
-                  className={`group flex items-center py-3 px-4 gap-3 rounded-xl transition-all duration-200 text-base hover:bg-white/70 ${
+                  className={`group flex items-center py-3 px-4 gap-3 rounded-xl transition-all duration-200 text-base hover:bg-[#00F474]/70 ${
                     isActive ? "bg-[#00F474]" : ""
                   }`}
                 >
                   <div className="w-6 h-6 shrink-0 flex items-center justify-center">
-                    <item.icon  active={isActive || isHovered}  />
-                   
+                    <item.icon active={isActive || isHovered} />
                   </div>
                   <h3
-                    className={`font-medium overflow-hidden whitespace-nowrap inline-block text-base font-sans group-hover:text-primary ${
+                    className={`font-medium overflow-hidden whitespace-nowrap inline-block text-base font-sans group-hover:text-[#1D1F2C] ${
                       isActive ? "text-[#1D1F2C] font-medium" : "text-[#E9E9EA]"
                     }`}
                   >
@@ -194,7 +193,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Bottom items - Settings and Logout */}
         <div className="mt-auto pt-3 space-y-3 px-2 pb-10">
           {bottomMenuItems.map((item, index) => {
-            const isActive = !item.isAction && isItemActive(item.href, item.title);
+            const isActive =
+              !item.isAction && isItemActive(item.href, item.title);
             const isHovered = hoveredItem === item.title;
 
             if (item.isAction) {
@@ -205,17 +205,18 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   onClick={() => handleBottomItemClick(item)}
                   onMouseEnter={() => setHoveredItem(item.title)}
                   onMouseLeave={() => setHoveredItem(null)}
-                  className={`group flex items-center gap-3.5 p-3 rounded-lg transition-all duration-200 text-base hover:bg-white/70 w-full ${
+                  className={`group flex items-center py-3 px-4 gap-3 rounded-xl transition-all duration-200 text-base hover:bg-[#00F474]/70 w-full ${
                     isActive ? "bg-[#00F474]" : ""
                   }`}
                 >
-                  <div className="w-5 h-5">
+                  <div className="w-6 h-6 shrink-0 flex items-center justify-center">
                     <item.icon active={isHovered} />
-                    {/* <item.icon  /> */}
                   </div>
                   <h3
-                    className={`font-medium overflow-hidden whitespace-nowrap inline-block text-base font-sans group-hover:text-primary ${
-                      isHovered ? "text-primary font-medium" : "text-[#E9E9EA]"
+                    className={`font-medium overflow-hidden whitespace-nowrap inline-block text-base font-sans group-hover:text-[#1D1F2C] ${
+                      isHovered
+                        ? "text-[#1D1F2C] font-medium"
+                        : "text-[#E9E9EA]"
                     }`}
                   >
                     {item.title}
@@ -232,17 +233,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 onClick={() => handleBottomItemClick(item)}
                 onMouseEnter={() => setHoveredItem(item.title)}
                 onMouseLeave={() => setHoveredItem(null)}
-                className={`group flex items-center gap-3.5 p-3 rounded-lg transition-all duration-200 text-base hover:bg-white/70 ${
+                className={`group flex items-center py-3 px-4 gap-3 rounded-xl transition-all duration-200 text-base hover:bg-[#00F474]/70 ${
                   isActive ? "bg-[#00F474]" : ""
                 }`}
               >
-                <div className="w-5 h-5">
-                  {/* <item.icon active={isActive || isHovered} /> */}
-                  <item.icon  />
-
+                <div className="w-6 h-6 shrink-0 flex items-center justify-center">
+                  <item.icon active={isActive || isHovered} />
                 </div>
                 <h3
-                  className={`font-medium overflow-hidden whitespace-nowrap inline-block text-base font-sans group-hover:text-primary ${
+                  className={`font-medium overflow-hidden whitespace-nowrap inline-block text-base font-sans group-hover:text-[#1D1F2C] ${
                     isActive ? "text-[#1D1F2C] font-medium" : "text-[#E9E9EA]"
                   }`}
                 >
