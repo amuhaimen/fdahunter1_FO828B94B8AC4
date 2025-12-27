@@ -1,0 +1,134 @@
+[
+    {
+      "id": 1,
+      "sportsType": "sports",
+      "subCategory": "NBA",
+      "createdDate": "2024-11-01",
+      "teamName": "Lakers vs Warriors",
+      "confidence": 78,
+      "winRate": 85,
+      "signal": "Home Win",
+      "image":"https://ibb.co/ynD0rWyC"
+    },
+    {
+      "id": 2,
+      "sportsType": "sports",
+      "subCategory": "NFL",
+      "createdDate": "2024-11-05",
+      "teamName": "Patriots vs Dolphins",
+      "confidence": 65,
+      "winRate": 72,
+      "signal": "Away Win",
+      "image":"https://ibb.co/sp8w6bTb"
+    },
+    {
+      "id": 3,
+      "sportsType": "casino",
+      "subCategory": "Blackjack",
+      "createdDate": "2024-10-28",
+      "teamName": "Player vs Dealer",
+      "confidence": 82,
+      "winRate": 68,
+      "signal": "Over",
+      "image":"https://ibb.co/DDfKHPNc"
+    },
+    {
+      "id": 4,
+      "sportsType": "stocks",
+      "subCategory": "Tech-Stocks",
+      "createdDate": "2024-11-10",
+      "teamName": "Apple vs Microsoft",
+      "confidence": 91,
+      "winRate": 88,
+      "signal": "Bullish",
+      "image":"https://ibb.co/DDfKHPNc"
+    },
+    {
+      "id": 5,
+      "sportsType": "sports",
+      "subCategory": "Soccer-Premier",
+      "createdDate": "2024-11-03",
+      "teamName": "Manchester United vs Liverpool",
+      "confidence": 45,
+      "winRate": 55,
+      "signal": "Draw",
+      "image":"https://ibb.co/DDfKHPNc"
+    },
+    {
+      "id": 6,
+      "sportsType": "casino",
+      "subCategory": "Roulette",
+      "createdDate": "2024-10-25",
+      "teamName": "Red vs Black",
+      "confidence": 58,
+      "winRate": 48,
+      "signal": "Under",
+      "image":"https://ibb.co/DDfKHPNc"
+    },
+    {
+      "id": 7,
+      "sportsType": "stocks",
+      "subCategory": "Finance-Stocks",
+      "createdDate": "2024-11-08",
+      "teamName": "Goldman Sachs vs JP Morgan",
+      "confidence": 73,
+      "winRate": 79,
+      "signal": "Buy",
+      "image":"https://ibb.co/DDfKHPNc"
+    },
+    {
+      "id": 8,
+      "sportsType": "sports",
+      "subCategory": "NHL",
+      "createdDate": "2024-10-30",
+      "teamName": "Maple Leafs vs Canadiens",
+      "confidence": 82,
+      "winRate": 76,
+      "signal": "Home Win",
+      "image":"https://ibb.co/DDfKHPNc"
+    },
+    {
+      "id": 9,
+      "sportsType": "casino",
+      "subCategory": "Poker",
+      "createdDate": "2024-11-12",
+      "teamName": "Texas Hold'em Tournament",
+      "confidence": 67,
+      "winRate": 62,
+      "signal": "Over",
+      "image":"https://ibb.co/DDfKHPNc"
+    },
+    {
+      "id": 10,
+      "sportsType": "stocks",
+      "subCategory": "Energy-Stocks",
+      "createdDate": "2024-11-02",
+      "teamName": "Exxon vs Chevron",
+      "confidence": 49,
+      "winRate": 52,
+      "signal": "Sell",
+      "image":"https://ibb.co/DDfKHPNc"
+    },
+    {
+      "id": 11,
+      "sportsType": "sports",
+      "subCategory": "MLB",
+      "createdDate": "2024-10-29",
+      "teamName": "Yankees vs Red Sox",
+      "confidence": 76,
+      "winRate": 81,
+      "signal": "Home Win",
+      "image":"https://ibb.co/DDfKHPNc"
+    },
+    {
+      "id": 12,
+      "sportsType": "sports",
+      "subCategory": "UFC",
+      "createdDate": "2024-10-27",
+      "teamName": "McGregor vs Nurmagomedov",
+      "confidence": 88,
+      "winRate": 92,
+      "signal": "Home Win",
+      "image":"https://ibb.co/DDfKHPNc"
+    }
+  ]
