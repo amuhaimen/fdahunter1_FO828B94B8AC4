@@ -10,9 +10,8 @@ import { SearchBar } from "../reusable/SearchBar";
 import DynamicTable from "../reusable/DynamicTable";
 import { PredictionColumn } from "../columns/PredictionColumn";
 import predictionData from '../../_components/data/predictionData.json'
-import DynamicPagination from "../reusable/DynamicPagination"; // Adjust path as needed
-
- 
+import DynamicPagination from "../reusable/DynamicPagination";
+import { ChartBarMultiple } from "./ChartMultipleBar";
 
 interface StatCardProps {
   title: string;
@@ -41,15 +40,19 @@ export default function DashboardHome() {
   // Calculate pagination values
   const totalItems = filteredData.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
+  
+  // Get current page data - Calculate start and end indices
+  const getCurrentPageData = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+    return filteredData.slice(startIndex, endIndex);
+  };
+  
+  const currentPageData = getCurrentPageData();
+  
+  // Check if there are next/previous pages
   const hasNextPage = currentPage < totalPages;
   const hasPrevPage = currentPage > 1;
-  
-  // Get current page data
-  const currentPageData = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, currentPage, itemsPerPage]);
   
   // Reset to first page when search changes or items per page changes
   useEffect(() => {
@@ -83,25 +86,19 @@ export default function DashboardHome() {
     },
   ];
   
-  // Debug: Check if pagination is working
-  console.log({
-    currentPage,
-    itemsPerPage,
-    totalItems,
-    totalPages,
-    hasNextPage,
-    hasPrevPage,
-    showingItems: currentPageData.length
-  });
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
   
   return (
     <div>
-      <div className=" bg-[#0E121B] p-6 rounded-xl">
+      <div className="bg-[#0E121B] p-6 rounded-xl">
         <PageHeader
           title="Hi, Meyer"
           subtitle="This is your break down summaries so far"
-          titleClass=" text-2xl font-bold text-white"
-          subtitleClass=" text-[#687588] text-sm"
+          titleClass="text-2xl font-bold text-white"
+          subtitleClass="text-[#687588] text-sm"
         />
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
@@ -110,31 +107,31 @@ export default function DashboardHome() {
               className="p-3 relative border border-[#2B303B] rounded-xl overflow-hidden"
               key={index}
             >
-              <div className=" flex items-center gap-2">
-                <div className=" bg-[#181B25] p-2 rounded-xl">{card.icon}</div>
-                <h3 className=" text-white text-base font-medium">{card.title}</h3>
+              <div className="flex items-center gap-2">
+                <div className="bg-[#181B25] p-2 rounded-xl">{card.icon}</div>
+                <h3 className="text-white text-base font-medium">{card.title}</h3>
               </div>
-              <h2 className=" text-white text-2xl font-medium my-3">{card.value}</h2>
-              <p className=" text-[#687588] text-sm font-medium">{card.period}</p>
+              <h2 className="text-white text-2xl font-medium my-3">{card.value}</h2>
+              <p className="text-[#687588] text-sm font-medium">{card.period}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* Charts Section */}
-      <div className=" mt-4.5 flex gap-4.5 items-center">
-        <div className='bg-[#0E121B] flex-3  '>
-          <ChartRadialStacked/>
+      <div className="mt-4.5 flex gap-4.5   ">
+        <div className='bg-[#0E121B] flex-3'>
+          <ChartBarMultiple/>
         </div>
         <div className='bg-[#0E121B] flex-2'>
-          <ChartRadialStacked/>
+           <ChartRadialStacked/> 
         </div>
       </div>
 
       {/* Table Section with Pagination */}
-      <div className=" bg-[#0E121B] mt-4.5 p-6 rounded-2xl">
-        <div className=" flex justify-between items-center">
-          <h2 className=" text-xl text-white font-bold">Recent Predictions</h2>
+      <div className="bg-[#0E121B] mt-4.5 p-6 rounded-2xl">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl text-white font-bold">Recent Predictions</h2>
           <SearchBar 
             value={search} 
             onChange={setSearch} 
@@ -146,7 +143,8 @@ export default function DashboardHome() {
         <div className="mt-6">
           <DynamicTable
             columns={PredictionColumn}
-            data={currentPageData}
+            data={currentPageData} // Pass only current page data
+            // Do NOT pass pagination props to DynamicTable
             hasWrapperBorder={false}
             headerStyles={{
               backgroundColor: "#323B49",
@@ -161,7 +159,7 @@ export default function DashboardHome() {
           />
           
           {/* Pagination Component */}
-          <div className="bg-[#0E121B] rounded-b-2xl">
+          <div className=" ">
             <DynamicPagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -171,11 +169,10 @@ export default function DashboardHome() {
               totalItems={totalItems}
               itemsPerPage={itemsPerPage}
               // Items per page functionality
-              onItemsPerPageChange={setItemsPerPage}
-              itemsPerPageOptions={[2,5, 10, 15, 20, 25, 30, 50]}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              itemsPerPageOptions={[2, 5, 10, 15, 20, 25, 30, 50]}
               showItemsPerPage={true}
-              itemsPerPageLabel="Show"
-              entriesLabel="entries per page"
+              show={totalItems > 0}
             />
           </div>
         </div>
