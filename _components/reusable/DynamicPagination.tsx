@@ -7,12 +7,15 @@ import {
     PaginationItem,
     PaginationLink,
 } from "@/components/ui/pagination"
-import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
- 
-import { SelectItem } from "@radix-ui/react-select";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import LeftArrowIcon from "../icons/common/LeftArrowIcon";
 import RightArrowIcon from "../icons/common/RightArrowIcon";
- 
 
 interface TransportPaginationProps {
     // Your existing props
@@ -33,7 +36,7 @@ interface TransportPaginationProps {
     entriesLabel?: string;
 }
 
-export default function LabPagination({
+export default function DynamicPagination({
     // Your existing props
     currentPage,
     totalPages,
@@ -101,7 +104,7 @@ export default function LabPagination({
     return (
         <div className="flex flex-col-reverse sm:flex-row justify-between py-3 text-[#5D5D5D] text-sm leading-[21px] rounded-b-lg select-none">
             
-            {/* Your existing pagination - completely unchanged */}
+            {/* Your existing pagination */}
             <div className="select-none">
                 <Pagination>
                     <PaginationContent>
@@ -112,7 +115,7 @@ export default function LabPagination({
                                 onClick={handlePrevious}
                                 className={`w-full h-[35px] flex items-center p-2.5 cursor-pointer rounded-md border border-[#F1F2F4] ${!hasPrevPage ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
-                             <LeftArrowIcon/>
+                             <RightArrowIcon/> 
                             </div>
                         </PaginationItem>
 
@@ -163,7 +166,7 @@ export default function LabPagination({
                                 onClick={handleNext}
                                 className={`w-full h-[35px] flex items-center p-2.5 cursor-pointer rounded-md border border-[#F1F2F4] ${!hasNextPage ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
-                              <RightArrowIcon/>
+                                  <LeftArrowIcon/>
                             </div>
                         </PaginationItem>
 
@@ -171,7 +174,7 @@ export default function LabPagination({
                 </Pagination>
             </div>
 
-            {/* New Items Per Page Dropdown - Added to the right side */}
+            {/* Fixed Items Per Page Dropdown */}
             {showItemsPerPage && onItemsPerPageChange && (
                 <div className="flex items-center gap-2 mb-4 sm:mb-0">
                     <span className="text-sm text-gray-600">{itemsPerPageLabel}</span>
@@ -179,17 +182,14 @@ export default function LabPagination({
                         value={itemsPerPage.toString()} 
                         onValueChange={handleItemsPerPageChange}
                     >
-                        <SelectTrigger className="w-20 h-9 border border-gray-300 bg-white hover:bg-gray-50">
-                            <SelectValue className="text-gray-900 font-medium">
-                                {itemsPerPage}
-                            </SelectValue>
+                        <SelectTrigger className="w-20 h-9">
+                            <SelectValue placeholder={itemsPerPage.toString()} />
                         </SelectTrigger>
-                        <SelectContent className="bg-white border border-gray-200 shadow-lg rounded-md">
+                        <SelectContent>
                             {itemsPerPageOptions.map(option => (
                                 <SelectItem 
                                     key={option} 
                                     value={option.toString()}
-                                    className="text-gray-700 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700 data-[state=checked]:bg-blue-50 data-[state=checked]:text-blue-700 px-3 py-2 cursor-pointer"
                                 >
                                     {option}
                                 </SelectItem>

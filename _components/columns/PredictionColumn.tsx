@@ -27,7 +27,7 @@ export const PredictionColumn = [
               /> */}
             </div>
           )}
-          <span className="text-[#4a4c56] text-sm font-medium">
+          <span className="text-white text-sm font-medium">
             {value}
           </span>
         </div>
@@ -40,27 +40,11 @@ export const PredictionColumn = [
     accessor: "subCategory",
     sortable: true,
     formatter: (value: string) => {
-      const categories: Record<string, string> = {
-        NBA: "NBA Basketball",
-        NFL: "NFL Football",
-        MLB: "MLB Baseball",
-        NHL: "NHL Hockey",
-        PGA: "PGA Golf",
-        UFC: "UFC MMA",
-        "Soccer-Premier": "Premier League",
-        "Soccer-LaLiga": "La Liga",
-        Blackjack: "Blackjack",
-        Roulette: "Roulette",
-        Poker: "Poker",
-        Slots: "Slots",
-        "Tech-Stocks": "Technology Stocks",
-        "Finance-Stocks": "Financial Stocks",
-        "Energy-Stocks": "Energy Stocks",
-      };
+     
       
       return (
-        <span className="text-[#4a4c56] text-sm font-medium">
-          {categories[value as keyof typeof categories] || value}
+        <span className="text-white text-sm ">
+      {value}
         </span>
       );
     },
@@ -79,7 +63,7 @@ export const PredictionColumn = [
       
       return (
         <div className="flex flex-col">
-          <span className={`text-sm ${isRecent ? 'text-[#3B82F6] font-medium' : 'text-[#909296]'}`}>
+          <span className={`text-sm text-white `}>
             {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
           {isRecent && (
@@ -97,7 +81,7 @@ export const PredictionColumn = [
     formatter: (value: string) => {
       
       return (
-        <div className="flex flex-col space-y-1">
+        <div className=" text-sm text-white">
           {value}
         </div>
       );
@@ -113,19 +97,19 @@ export const PredictionColumn = [
       let bgColorClass = "bg-gray-100";
       
       if (value >= 80) {
-        colorClass = "text-green-700";
-        bgColorClass = "bg-green-50";
+        colorClass = "text-[#00F474]";
+        bgColorClass = "bg-[#15673C]";
       } else if (value >= 60) {
         colorClass = "text-blue-700";
-        bgColorClass = "bg-blue-50";
+        bgColorClass = "bg-[#152667]";
       } else if (value >= 40) {
-        colorClass = "text-yellow-700";
-        bgColorClass = "bg-yellow-50";
+        colorClass = "text-[#E6004C]";
+        bgColorClass = "bg-[#5C152D]";
       }
       
       return (
         <div className="flex items-center">
-          <div className={`px-3 py-1.5 rounded-full ${bgColorClass}`}>
+          <div className={`px-2.5 py-1   rounded-lg   ${bgColorClass}`}>
             <span className={`text-sm font-bold ${colorClass}`}>
               {value}%
             </span>
@@ -156,7 +140,7 @@ export const PredictionColumn = [
       
       return (
         <div className="flex items-center">
-          <div className={`px-3 py-1.5 rounded-full ${bgColorClass}`}>
+          <div className={`px-3 py-1.5 rounded-full  `}>
             <span className={`text-sm font-bold ${colorClass}`}>
               {value}%
             </span>
@@ -175,7 +159,7 @@ export const PredictionColumn = [
       return (
         
        
-          <span className={`text-sm font-medium px-3 py-1.5 rounded-full`}>
+          <span className={`text-sm   text-white`}>
             {value}
           </span>
      

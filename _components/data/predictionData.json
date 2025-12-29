@@ -8,7 +8,7 @@
       "confidence": 78,
       "winRate": 85,
       "signal": "Home Win",
-      "image":"https://ibb.co/ynD0rWyC"
+      "image":"../../public/sports-1.png"
     },
     {
       "id": 2,
@@ -19,7 +19,7 @@
       "confidence": 65,
       "winRate": 72,
       "signal": "Away Win",
-      "image":"https://ibb.co/sp8w6bTb"
+      "image":"../../public/sports-2.png"
     },
     {
       "id": 3,
@@ -30,7 +30,7 @@
       "confidence": 82,
       "winRate": 68,
       "signal": "Over",
-      "image":"https://ibb.co/DDfKHPNc"
+      "image":"../../public/sports-1.png"
     },
     {
       "id": 4,
@@ -41,7 +41,7 @@
       "confidence": 91,
       "winRate": 88,
       "signal": "Bullish",
-      "image":"https://ibb.co/DDfKHPNc"
+      "image":"../../public/sports-1.png"
     },
     {
       "id": 5,
@@ -52,7 +52,7 @@
       "confidence": 45,
       "winRate": 55,
       "signal": "Draw",
-      "image":"https://ibb.co/DDfKHPNc"
+      "image":"../../public/sports-1.png"
     },
     {
       "id": 6,
@@ -63,7 +63,7 @@
       "confidence": 58,
       "winRate": 48,
       "signal": "Under",
-      "image":"https://ibb.co/DDfKHPNc"
+      "image":"../../public/sports-1.png"
     },
     {
       "id": 7,
@@ -74,7 +74,7 @@
       "confidence": 73,
       "winRate": 79,
       "signal": "Buy",
-      "image":"https://ibb.co/DDfKHPNc"
+      "image":"../../public/sports-1.png"
     },
     {
       "id": 8,
@@ -85,7 +85,7 @@
       "confidence": 82,
       "winRate": 76,
       "signal": "Home Win",
-      "image":"https://ibb.co/DDfKHPNc"
+      "image":"../../public/sports-1.png"
     },
     {
       "id": 9,
@@ -96,7 +96,7 @@
       "confidence": 67,
       "winRate": 62,
       "signal": "Over",
-      "image":"https://ibb.co/DDfKHPNc"
+      "image":"../../public/sports-1.png"
     },
     {
       "id": 10,
@@ -107,7 +107,7 @@
       "confidence": 49,
       "winRate": 52,
       "signal": "Sell",
-      "image":"https://ibb.co/DDfKHPNc"
+      "image":"../../public/sports-1.png"
     },
     {
       "id": 11,
@@ -118,7 +118,7 @@
       "confidence": 76,
       "winRate": 81,
       "signal": "Home Win",
-      "image":"https://ibb.co/DDfKHPNc"
+      "image":"../../public/sports-1.png"
     },
     {
       "id": 12,
@@ -129,6 +129,6 @@
       "confidence": 88,
       "winRate": 92,
       "signal": "Home Win",
-      "image":"https://ibb.co/DDfKHPNc"
+      "image":"../../public/sports-1.png"
     }
   ]

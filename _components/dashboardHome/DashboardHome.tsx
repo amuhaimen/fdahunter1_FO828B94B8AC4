@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import PageHeader from "../reusable/PageHeader";
 import WinRateIcon from "../icons/dashboardHome/WinRateIcon";
 import StaticsIcon from "../icons/sidebar/StaticsIcon";
@@ -10,7 +10,9 @@ import { SearchBar } from "../reusable/SearchBar";
 import DynamicTable from "../reusable/DynamicTable";
 import { PredictionColumn } from "../columns/PredictionColumn";
 import predictionData from '../../_components/data/predictionData.json'
+import DynamicPagination from "../reusable/DynamicPagination"; // Adjust path as needed
 
+ 
 
 interface StatCardProps {
   title: string;
@@ -20,8 +22,40 @@ interface StatCardProps {
 }
 
 export default function DashboardHome() {
-
-  const [search, setSearch]=useState('')
+  const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
+  // Filter data based on search
+  const filteredData = useMemo(() => {
+    if (!search) return predictionData;
+    
+    const searchLower = search.toLowerCase();
+    return predictionData.filter(item => 
+      Object.values(item).some(value => 
+        String(value).toLowerCase().includes(searchLower)
+      )
+    );
+  }, [search]);
+  
+  // Calculate pagination values
+  const totalItems = filteredData.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const hasNextPage = currentPage < totalPages;
+  const hasPrevPage = currentPage > 1;
+  
+  // Get current page data
+  const currentPageData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredData.slice(startIndex, endIndex);
+  }, [filteredData, currentPage, itemsPerPage]);
+  
+  // Reset to first page when search changes or items per page changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, itemsPerPage]);
+  
   const statCardsData: StatCardProps[] = [
     {
       title: "Overall Win Rate",
@@ -48,74 +82,103 @@ export default function DashboardHome() {
       icon: <UsersIcon />,
     },
   ];
+  
+  // Debug: Check if pagination is working
+  console.log({
+    currentPage,
+    itemsPerPage,
+    totalItems,
+    totalPages,
+    hasNextPage,
+    hasPrevPage,
+    showingItems: currentPageData.length
+  });
+  
   return (
     <div>
-    <div className=" bg-[#0E121B] p-6 rounded-xl">
-      <PageHeader
-        title="Hi, Meyer"
-        subtitle="This is your break down summaries so far"
-        titleClass=" text-2xl font-bold text-white"
-        subtitleClass=" text-[#687588] text-sm"
-      />
+      <div className=" bg-[#0E121B] p-6 rounded-xl">
+        <PageHeader
+          title="Hi, Meyer"
+          subtitle="This is your break down summaries so far"
+          titleClass=" text-2xl font-bold text-white"
+          subtitleClass=" text-[#687588] text-sm"
+        />
 
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-        {statCardsData.map((card, index) => (
-          <div
-            className="p-3 relative border border-[#2B303B] rounded-xl overflow-hidden"
-            key={index}
-          >
-            <div className=" flex items-center gap-2">
-              <div className=" bg-[#181B25] p-2 rounded-xl">{card.icon}</div>
-              <h3 className=" text-white text-base font-medium">{card.title}</h3>
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+          {statCardsData.map((card, index) => (
+            <div
+              className="p-3 relative border border-[#2B303B] rounded-xl overflow-hidden"
+              key={index}
+            >
+              <div className=" flex items-center gap-2">
+                <div className=" bg-[#181B25] p-2 rounded-xl">{card.icon}</div>
+                <h3 className=" text-white text-base font-medium">{card.title}</h3>
+              </div>
+              <h2 className=" text-white text-2xl font-medium my-3">{card.value}</h2>
+              <p className=" text-[#687588] text-sm font-medium">{card.period}</p>
             </div>
-            <h2 className=" text-white text-2xl font-medium my-3">{card.value}</h2>
-            <p className=" text-[#687588] text-sm font-medium">{card.period}</p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-    </div>
-
-      {/*  */}
+      {/* Charts Section */}
       <div className=" mt-4.5 flex gap-4.5 items-center">
-      <div className='bg-[#0E121B] flex-3  '>
-      <ChartRadialStacked/>
-
-      </div>
-      <div className='bg-[#0E121B] flex-2'>
-      <ChartRadialStacked/>
-
-      </div>
-
+        <div className='bg-[#0E121B] flex-3  '>
+          <ChartRadialStacked/>
+        </div>
+        <div className='bg-[#0E121B] flex-2'>
+          <ChartRadialStacked/>
+        </div>
       </div>
 
-      {/* tablee */}
-
+      {/* Table Section with Pagination */}
       <div className=" bg-[#0E121B] mt-4.5 p-6 rounded-2xl">
         <div className=" flex justify-between items-center">
-          <h2 className=" text-xl text-white  font-bold">Recent Predictions</h2>
-          <SearchBar value={search} onChange={setSearch} className=" max-w-md  " placeholder="Search Picks"/>
+          <h2 className=" text-xl text-white font-bold">Recent Predictions</h2>
+          <SearchBar 
+            value={search} 
+            onChange={setSearch} 
+            className="max-w-md" 
+            placeholder="Search Picks"
+          />
         </div>
-<div className=" mt-6">
-         <DynamicTable
-        columns={PredictionColumn}
-        data={predictionData }
-        hasWrapperBorder={false}
-        headerStyles={{
-          backgroundColor: "#323B49",
-          textColor: "#CBD5E0",
-          fontSize: "12px",
-          padding: "16px",
-          fontWeight: "600",
-        }}
-        roundedClass="rounded-b-none"
-        minWidth={800}
-        cellBorderColor="#323B49"
-      
-      />
-
-</div>
-
+        
+        <div className="mt-6">
+          <DynamicTable
+            columns={PredictionColumn}
+            data={currentPageData}
+            hasWrapperBorder={false}
+            headerStyles={{
+              backgroundColor: "#323B49",
+              textColor: "#CBD5E0",
+              fontSize: "12px",
+              padding: "16px",
+              fontWeight: "600",
+            }}
+            roundedClass="rounded-b-none"
+            minWidth={800}
+            cellBorderColor="#323B49"
+          />
+          
+          {/* Pagination Component */}
+          <div className="bg-[#0E121B] rounded-b-2xl">
+            <DynamicPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              hasNextPage={hasNextPage}
+              hasPrevPage={hasPrevPage}
+              onPageChange={setCurrentPage}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              // Items per page functionality
+              onItemsPerPageChange={setItemsPerPage}
+              itemsPerPageOptions={[2,5, 10, 15, 20, 25, 30, 50]}
+              showItemsPerPage={true}
+              itemsPerPageLabel="Show"
+              entriesLabel="entries per page"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

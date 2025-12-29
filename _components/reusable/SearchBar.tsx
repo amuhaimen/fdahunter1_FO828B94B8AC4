@@ -60,8 +60,8 @@ export function SearchBar({
         disabled={disabled}
         className={cn(
           "w-full rounded-lg border border-[#687588] bg-transparent px-5 py-6 text-white",
-          "placeholder:text-[#687588]",
-          "focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500",
+          "placeholder:text-[#fff]",
+          "focus:border-[#00F474] focus:outline-none focus:ring-1 focus:ring-[#00F474]",
           "disabled:cursor-not-allowed disabled:opacity-50",
           sizeClasses[size],
           className
