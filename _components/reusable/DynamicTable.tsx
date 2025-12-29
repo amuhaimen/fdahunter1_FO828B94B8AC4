@@ -62,6 +62,7 @@ export default function DynamicTable({
     textColor: "#4a4c56",
     fontSize: "14px",
     fontWeight: "500",
+    
   },
 
   cellBorderColor = "#EDEDED",
@@ -118,6 +119,7 @@ export default function DynamicTable({
                       fontSize: headerStyles.fontSize,
                       padding: headerStyles.padding,
                       fontWeight: headerStyles.fontWeight,
+                   
                     }}
                     className={`text-[#A5A5AB] px-4 py-3 whitespace-nowrap text-base font-light capitalize text-descriptionColor border-none
                       ${index === 0 ? "rounded-l-2xl" : ""}

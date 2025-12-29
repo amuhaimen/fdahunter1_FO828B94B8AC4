@@ -10,6 +10,9 @@ import { Search } from "lucide-react";
 import { SearchBar } from "../reusable/SearchBar";
 import CustomDropdown from "../reusable/CustomDropdown";
 import AddPredictionSidebar from "./AddPredictionSidebar";
+import DynamicTable from "../reusable/DynamicTable";
+import { RecentPredictionColumn } from "../columns/RecentPredictionsColumn";
+import recentData from "../data/recentData.json";
 
 interface StatCardProps {
   title: string;
@@ -133,6 +136,26 @@ export default function Prediction() {
             className="  flex-1 w-full"
           />
         </div>
+<div className=" mt-6">
+        <DynamicTable
+          columns={RecentPredictionColumn}
+          data={recentData}
+          hasWrapperBorder={false}
+          headerStyles={{
+            backgroundColor: "#323B49",
+            textColor: "#CBD5E0",
+            fontSize: "12px",
+            padding: "16px",
+            fontWeight: "600",
+            
+           
+          }}
+          roundedClass="rounded-b-none"
+          minWidth={800}
+          cellBorderColor="#323B49"
+        />
+
+</div>
       </div>
 
       {/* sidebar */}
