@@ -51,7 +51,7 @@ export default function SettingsSidebar() {
   };
 
   return (
-    <div className="bg-[#0E121B] py-6 px-4 rounded-[24px] xl:min-w-58 h-full min-h-[80vh]">
+    <div className="bg-[#0E121B] py-6 px-4 rounded-[24px] xl:min-w-58 h-full xl:min-h-[80vh]">
       <nav className="flex flex-row xl:flex-col gap-4 xl:gap-6 whitespace-nowrap overflow-x-auto scrollbar-hide">
         {sidebarItems.map((item) => (
           <Link
