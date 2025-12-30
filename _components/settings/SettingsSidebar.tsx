@@ -2,59 +2,49 @@
 import React, { useState, useEffect } from 'react'
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-// import AdminInfoIcon from '@/public/settings/icons/AdminInfoIcon';
-// import NotificationIcon from '@/public/settings/icons/NotificationIcon';
-// import Security from '@/public/settings/icons/Security';
-// import IntegrationIcon from '@/public/settings/icons/IntegrationIcon';
 
 interface SidebarItemType {
   name: string;
   href: string;
- 
 }
 
 const sidebarItems: SidebarItemType[] = [
   {
     name: "General",
-    href: "/dashboard/settings/general",
-    // icon: AdminInfoIcon
+    href: "/dashboard/settings",
   },
   {
     name: "Password",
     href: "/dashboard/settings/password",
- 
   },
   {
     name: "Notifications",
     href: "/dashboard/settings/notification",
- 
   } 
 ];
 
 export default function SettingsSidebar() {
   const pathname = usePathname();
-  const [activeItem, setActiveItem] = useState<string>("/dashboard/settings");
+  const [activeItem, setActiveItem] = useState<string>("");
 
   useEffect(() => {
+    if (!pathname) {
+      setActiveItem("/dashboard/settings");
+      return;
+    }
+
+    // Sort items by length (longest first) to ensure exact matches are checked first
     const sortedItems = [...sidebarItems].sort((a, b) => b.href.length - a.href.length);
     
-    const currentItem = sortedItems.find(item => {
-      if (item.href === "/admin-dashboard/settings") {
-        return pathname === "/admin-dashboard/settings";
-      }
-      return pathname.startsWith(item.href);
-    });
+    // Find the first exact match or startsWith match
+    const matchingItem = sortedItems.find(item => 
+      pathname === item.href || 
+      (pathname.startsWith(item.href) && 
+       (pathname === item.href || pathname.charAt(item.href.length) === '/'))
+    );
 
-    if (!currentItem && pathname.startsWith("/admin-dashboard/settings")) {
-      setActiveItem("/admin-dashboard/settings");
-    } else {
-      setActiveItem(currentItem ? currentItem.href : "/admin-dashboard/settings");
-    }
+    setActiveItem(matchingItem?.href || "/dashboard/settings");
   }, [pathname]);
-
-  const handleLinkClick = (href: string) => {
-    setActiveItem(href);
-  };
 
   const isActiveItem = (itemHref: string) => {
     return activeItem === itemHref;
@@ -67,14 +57,12 @@ export default function SettingsSidebar() {
           <Link
             key={item.name}
             href={item.href}
-            className={`flex items-center gap-4 py-2 px-3 rounded-xl transition-colors duration-200 ${
+            className={`flex items-center gap-4 py-2 px-3 rounded-lg transition-colors duration-200 ${
               isActiveItem(item.href)
                 ? "bg-[#181B25] border border-[#323B49] text-white font-semibold text-sm"
                 : "hover:bg-[#181B25] text-[#99A0AE]"
             }`}
-            onClick={() => handleLinkClick(item.href)}
           >
-         
             <h3 className="text-base font-medium">{item.name}</h3>
           </Link>
         ))}
