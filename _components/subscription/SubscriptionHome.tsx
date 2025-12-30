@@ -1,9 +1,16 @@
-import React from 'react'
+'use client'
+import React, { useState } from 'react'
 import PageHeader from '../reusable/PageHeader'
 import SubscribersIcon from '../icons/subscription/SubscribersIcon';
 import MonthlyRevIcon from '../icons/subscription/MonthlyRevIcon';
 import RevPerUserIcon from '../icons/subscription/RevPerUserIcon';
 import ChurnIcon from '../icons/subscription/ChurnIcon';
+import PlusIcon from '../icons/predictions/PlusIcon';
+import CustomModal from '../reusable/CustomModal';
+import DocumentsIcon from '../icons/subscription/DocumentsIcon';
+import TrashIcon from '../icons/predictions/TrashIcon';
+import RedTrashIcon from '../icons/subscription/RedTrashIcon';
+import TikMark from '../icons/subscription/TikMark';
 
 interface StatCardProps {
   title: string;
@@ -13,6 +20,7 @@ interface StatCardProps {
 }
 
 export default function SubscriptionHome() {
+      const [isModalOpen, setIsModalOpen] = useState(false);
 
 
   const statCardsData: StatCardProps[] = [
@@ -63,6 +71,76 @@ export default function SubscriptionHome() {
         </div>
 
         </div>
+
+        <div className=' bg-[#0E121B] p-6 rounded-lg mt-4.5'>
+               <div className=' flex items-center justify-between'>
+                <h3 className=' text-white text-2xl font-bold'>Subscription Plans</h3>
+
+                  <button
+                         onClick={() => setIsModalOpen(true)}
+                            className="bg-[#00F474] text-base text-[#1D1F2C] font-semibold p-2 rounded-lg
+                                 cursor-pointer flex items-center gap-1 hover:bg-[#00F474]/90 transition active:scale-95"
+                          >
+                            <PlusIcon />
+                            Add new plan
+                          </button>
+               </div>
+               <div className=' p-4 border border-[#2B303B] mt-6 flex items-center justify-between rounded-t-lg'>
+                    <h3 className=' text-white text-base font-semibold'>VIP MEMBERS</h3>
+                    <div className=' flex items-center gap-2'>
+                        <button className=' cursor-pointer'>
+                          <DocumentsIcon/>
+
+                        </button>
+                        <button className=' cursor-pointer'>
+                           <RedTrashIcon/>
+                        </button>
+                    </div>
+               </div>
+               <div className=' border-x border-b   border-[#2B303B]  pt-6 px-4 pb-4 rounded-b-lg flex items-center gap-6'>
+                    <div className=' flex-3 text-white '>
+                        <h2 className=' text-white text-[32px] font-semibold'>$99<span className=' text-sm text-[#A5A5AB] font-medium'>/month</span></h2>
+                        <p className=' text-sm text-[#A5A5AB] font-bold mt-2'>For individuals new to budgeting and looking to take control of their finances with basic AI insights.</p>
+                    </div>
+                    <ul className=' flex-2  space-y-1 '>
+                        <li className=' flex items-center gap-2'>
+                            <TikMark/>
+                            <p className=' text-sm text-[#A5A5AB] font-medium'>Al-based spending analysis</p>
+                        </li>
+                        <li className=' flex items-center gap-2'>
+                            <TikMark/>
+                            <p className=' text-sm text-[#A5A5AB] font-medium'>Personalized savings suggestions</p>
+                        </li>
+                        <li className=' flex items-center gap-2'>
+                            <TikMark/>
+                            <p className=' text-sm text-[#A5A5AB] font-medium'>Weekly expense reports</p>
+                        </li>
+                        
+
+                    </ul>
+                      <ul className=' flex-2  space-y-1 '>
+                        <li className=' flex items-center gap-2'>
+                            <TikMark/>
+                            <p className=' text-sm text-[#A5A5AB] font-medium'>Basic budget setup and tracking</p>
+                        </li>
+                        <li className=' flex items-center gap-2'>
+                            <TikMark/>
+                            <p className=' text-sm text-[#A5A5AB] font-medium'>Basic budget setup and tracking</p>
+                        </li>
+                        <li className=' flex items-center gap-2'>
+                            <TikMark/>
+                            <p className=' text-sm text-[#A5A5AB] font-medium'>Basic budget setup and tracking</p>
+                        </li>
+                        
+
+                    </ul>
+               </div>
+        </div>
+
+        <CustomModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} >
+            enter modal content here
+        </CustomModal>
+           
     </div>
   )
 }
