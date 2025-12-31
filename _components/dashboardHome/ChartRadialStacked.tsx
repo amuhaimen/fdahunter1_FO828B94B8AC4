@@ -5,9 +5,6 @@ import { Label, PolarRadiusAxis, RadialBar, RadialBarChart } from "recharts";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 
 import {
@@ -49,10 +46,15 @@ const chartConfig = {
 export function ChartRadialStacked() {
   // Calculate total win rate (92% as shown in your screenshot)
   const overallWinRate = 92;
+  
+  // Calculate total for percentage calculation
+  const total = Object.values(chartData[0])
+    .filter(val => typeof val === 'number')
+    .reduce((sum, val) => sum + val, 0);
 
   return (
     <Card className="flex flex-col bg-transparent border-none">
-      <CardContent className="flex flex-1 items-center pb-0">
+      <CardContent className="flex flex-col flex-1 items-center">
         <ChartContainer
           config={chartConfig}
           className="mx-auto aspect-square w-full max-w-[360px] h-[280px]"
@@ -68,41 +70,32 @@ export function ChartRadialStacked() {
               content={<ChartTooltipContent hideLabel />}
             />
             <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-             <Label
-  content={({ viewBox }) => {
-    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-      return (
-        <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle">
-          <tspan
-            x={viewBox.cx}
-            y={(viewBox.cy || 0) - 44}
-            className="fill-gray-400 text-sm"
-            dy="0.3em"
-          >
-            Overall Win rate
-          </tspan>
-          <tspan
-            x={viewBox.cx}
-            y={(viewBox.cy || 0) -10}
-            className="fill-white text-3xl font-bold"
-            dy="0.3em"
-          >
-            {overallWinRate} %
-          </tspan>
-          {/* <tspan
-            x={viewBox.cx}
-            y={(viewBox.cy || 0) + 8}
-            className="fill-white text-3xl font-bold"
-            dx="8"
-            dy="0.3em"
-          >
-            %
-          </tspan> */}
-        </text>
-      );
-    }
-  }}
-/>
+              <Label
+                content={({ viewBox }) => {
+                  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                    return (
+                      <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle">
+                        <tspan
+                          x={viewBox.cx}
+                          y={(viewBox.cy || 0) - 44}
+                          className="fill-gray-400 text-sm"
+                          dy="0.3em"
+                        >
+                          Overall Win rate
+                        </tspan>
+                        <tspan
+                          x={viewBox.cx}
+                          y={(viewBox.cy || 0) -10}
+                          className="fill-white text-3xl font-bold"
+                          dy="0.3em"
+                        >
+                          {overallWinRate} %
+                        </tspan>
+                      </text>
+                    );
+                  }
+                }}
+              />
             </PolarRadiusAxis>
             <RadialBar
               dataKey="crypto"
@@ -138,6 +131,27 @@ export function ChartRadialStacked() {
             />
           </RadialBarChart>
         </ChartContainer>
+        
+        {/* Custom Legend at the bottom - Reduced gap */}
+        <div className="w-full mt-4 space-y-3">
+          {Object.entries(chartConfig).map(([key, config]) => {
+            const value = chartData[0][key as keyof typeof chartData[0]] as number;
+            const percentage = ((value / total) * 100).toFixed(1);
+            
+            return (
+              <div key={key} className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-3 h-3 rounded-full flex-shrink-0" 
+                    style={{ backgroundColor: config.color }}
+                  />
+                  <span className="text-sm text-gray-300">{config.label}</span>
+                </div>
+                <span className="text-sm font-medium text-white">{percentage}%</span>
+              </div>
+            );
+          })}
+        </div>
       </CardContent>
     </Card>
   );

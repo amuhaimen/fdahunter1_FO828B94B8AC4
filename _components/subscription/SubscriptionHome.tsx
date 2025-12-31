@@ -12,6 +12,7 @@ import TrashIcon from "../icons/predictions/TrashIcon";
 import RedTrashIcon from "../icons/subscription/RedTrashIcon";
 import TikMark from "../icons/subscription/TikMark";
 import { Switch } from "@/components/ui/switch";
+import CustomDropdown from "../reusable/CustomDropdown";
 
 interface StatCardProps {
   title: string;
@@ -23,6 +24,16 @@ interface StatCardProps {
 export default function SubscriptionHome() {
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const [codeModalOpen, setCodeModalOpen] = useState(false);
+  const [duration,setDuration]=useState('')
+
+
+   const durationOption = [
+    { value: "lifetime", label: "Lifetime" },
+    { value: "1 month", label: "1 month" },
+    { value: "6 months", label: "6 months" },
+    { value: "1 year", label: "1 year" },
+  ];
+
 
   const statCardsData: StatCardProps[] = [
     {
@@ -240,8 +251,54 @@ export default function SubscriptionHome() {
       <CustomModal
         isOpen={planModalOpen}
         onClose={() => setPlanModalOpen(false)}
+        title="Create New Subscription Plan"
+        subTitle="Add a new subscription plan for your users."
       >
-        enter modal content here
+        <div className=" mt-6 mb-8 space-y-5">
+         <div className=" flex items-center gap-5">
+          <div>
+            <label htmlFor="plan-name" className=" text-white text-sm font-medium">Plan Name</label>
+            <input
+              type="text"
+              id="plan-name"
+              className="w-full px-2 py-3   text-white rounded-lg  border border-[#2B303B] placeholder:text-sm placeholder:text-[#717784] placeholder:font-medium mt-2"
+              placeholder="Pro Plus"
+            />
+          </div>
+          <div>
+            <label htmlFor="plan-price" className=" text-white text-sm font-medium">Price ($)</label>
+            <input
+              type="text"
+              id="plan-price"
+              className="w-full px-2 py-3   text-white rounded-lg mt-1 border border-[#2B303B] placeholder:text-sm placeholder:text-[#717784] placeholder:font-medium"
+              placeholder="79"
+            />
+          </div>
+         </div>
+
+         <div>
+             <label htmlFor="plan-price" className=" text-white text-sm font-medium">Duration</label>
+             <div className=" mt-2">
+             <CustomDropdown value={duration} onChange={setDuration} options={durationOption}/>
+
+             </div>
+         </div>
+
+         <div>
+          <label htmlFor="description"  className=" text-white text-sm font-medium"> Description</label>
+          <textarea name="description" id="description" className="w-full  p-2  text-white rounded-lg   border border-[#2B303B] placeholder:text-sm placeholder:text-[#717784] placeholder:font-medium mt-2 h-[112px]" placeholder=" A comprehensive plan for growing businesses..."></textarea>
+         </div>
+         <div>
+          <label htmlFor="features"  className=" text-white text-sm font-medium"> Features (one per line)</label>
+          <textarea name="features" id="features" className="w-full  p-2  text-white rounded-lg   border border-[#2B303B] placeholder:text-sm placeholder:text-[#717784] placeholder:font-medium mt-2 h-[112px]" placeholder="Unlimited searches"></textarea>
+         </div>
+
+        </div>
+
+        <div className=" flex items-center justify-end gap-4 mb-6">
+          <button className=" text-base text-[#99A0AE] font-semibold px-5 py-3 bg-[#181B25] rounded-lg cursor-pointer">Cancel</button>
+          <button className=" text-base text-[#1D1F2C] font-semibold px-5 py-3 bg-[#00f474] rounded-lg cursor-pointer">Create Plan</button>
+        </div>
       </CustomModal>
       <CustomModal
         isOpen={codeModalOpen}
