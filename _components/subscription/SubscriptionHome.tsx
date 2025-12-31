@@ -303,6 +303,8 @@ export default function SubscriptionHome() {
       <CustomModal
         isOpen={codeModalOpen}
         onClose={() => setCodeModalOpen(false)}
+        title="Create Promo Code"
+        subTitle="Create a new promotional code for subscribers"
       >
         promo codes
       </CustomModal>
