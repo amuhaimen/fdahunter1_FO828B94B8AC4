@@ -12,6 +12,7 @@ import { PredictionColumn } from "../columns/PredictionColumn";
 import predictionData from '../../_components/data/predictionData.json'
 import DynamicPagination from "../reusable/DynamicPagination";
 import { ChartBarMultiple } from "./ChartMultipleBar";
+import CustomDropdown from "../reusable/CustomDropdown";
 
 interface StatCardProps {
   title: string;
@@ -24,6 +25,12 @@ export default function DashboardHome() {
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [month,setMonth]=useState('January');
+
+  const monthOptions = [
+    { label: 'last 6 month', value: 'Last 6 month' },
+    { label: 'last 3 month', value: 'Last 3 month' },
+  ]
   
   // Filter data based on search
   const filteredData = useMemo(() => {
@@ -120,10 +127,20 @@ export default function DashboardHome() {
 
       {/* Charts Section */}
       <div className="mt-4.5 flex gap-4.5   ">
-        <div className='bg-[#0E121B] flex-3'>
+        <div className='bg-[#0E121B] flex-3 rounded-xl'>
+          <div className=" px-6 pt-6 flex justify-between items-center ">
+          <h3 className=" text-white text-lg font-semibold">Overall Confidence vs Actual Outcome</h3>
+          <CustomDropdown value={month} onChange={setMonth} options={monthOptions} className=" max-w-[160px] w-full" placeholder="last 6 month"  />
+
+          </div>
           <ChartBarMultiple/>
         </div>
-        <div className='bg-[#0E121B] flex-2'>
+        <div className='bg-[#0E121B] flex-2  rounded-xl'>
+           <div className=" px-6 pt-6 flex justify-between items-center ">
+          <h3 className=" text-white text-lg font-semibold">Total Win rate</h3>
+  
+
+          </div>
            <ChartRadialStacked/> 
         </div>
       </div>
