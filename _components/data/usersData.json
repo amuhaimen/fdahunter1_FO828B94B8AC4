@@ -1,0 +1,139 @@
+[
+  {
+    "user": {
+      "id": "USR001",
+      "name": "Alex Johnson",
+      "avatar": "https://randomuser.me/api/portraits/men/32.jpg"
+    },
+    "email": "alex.johnson@example.com",
+    "phone": "+1 (555) 123-4567",
+    "plan": "Premium",
+    "registeredDate": "2024-08-15",
+    "status": "active",
+    "amount": 49.99,
+    "promoCode": "WELCOME20"
+  },
+  {
+    "user": {
+      "id": "USR002",
+      "name": "Maria Garcia"
+    },
+    "email": "maria.garcia@example.com",
+    "phone": "+1 (555) 987-6543",
+    "plan": "Pro",
+    "registeredDate": "2024-09-10",
+    "status": "trial",
+    "amount": 29.99,
+    "promoCode": "SUMMER2024"
+  },
+  {
+    "user": {
+      "id": "USR003",
+      "name": "David Chen",
+      "avatar": "https://randomuser.me/api/portraits/men/45.jpg"
+    },
+    "email": "david.chen@example.com",
+    "phone": "+1 (555) 456-7890",
+    "plan": "Basic",
+    "registeredDate": "2024-07-22",
+    "status": "active",
+    "amount": 19.99,
+    "promoCode": "NEWUSER15"
+  },
+  {
+    "user": {
+      "id": "USR004",
+      "name": "Sarah Williams",
+      "avatar": "https://randomuser.me/api/portraits/women/28.jpg"
+    },
+    "email": "sarah.w@example.com",
+    "phone": null,
+    "plan": "Free",
+    "registeredDate": "2024-10-05",
+    "status": "trial",
+    "amount": 0,
+    "promoCode": null
+  },
+  {
+    "user": {
+      "id": "USR005",
+      "name": "Michael Brown",
+      "avatar": "https://randomuser.me/api/portraits/men/52.jpg"
+    },
+    "email": "michael.b@example.com",
+    "phone": "+1 (555) 321-0987",
+    "plan": "Enterprise",
+    "registeredDate": "2024-06-18",
+    "status": "expired",
+    "amount": 99.99,
+    "promoCode": "ENTERPRISE50"
+  },
+  {
+    "user": {
+      "id": "USR006",
+      "name": "Emma Wilson",
+      "avatar": "https://randomuser.me/api/portraits/women/33.jpg"
+    },
+    "email": "emma.wilson@example.com",
+    "phone": null,
+    "plan": "Premium",
+    "registeredDate": "2024-08-30",
+    "status": "active",
+    "amount": 49.99,
+    "promoCode": "AUTUMN2024"
+  },
+  {
+    "user": {
+      "id": "USR007",
+      "name": "James Miller"
+    },
+    "email": "james.m@example.com",
+    "phone": "+1 (555) 654-3210",
+    "plan": "Basic",
+    "registeredDate": "2024-09-25",
+    "status": "expired",
+    "amount": 19.99,
+    "promoCode": "BASIC10"
+  },
+  {
+    "user": {
+      "id": "USR008",
+      "name": "Lisa Taylor",
+      "avatar": "https://randomuser.me/api/portraits/women/41.jpg"
+    },
+    "email": "lisa.taylor@example.com",
+    "phone": "+1 (555) 789-0123",
+    "plan": "Pro",
+    "registeredDate": "2024-07-15",
+    "status": "active",
+    "amount": -29.99,
+    "promoCode": "REFUNDPROMO"
+  },
+  {
+    "user": {
+      "id": "USR009",
+      "name": "Robert Lee"
+    },
+    "email": "robert.lee@example.com",
+    "phone": "+1 (555) 234-5678",
+    "plan": "Free",
+    "registeredDate": "2024-10-12",
+    "status": "trial",
+    "amount": 0,
+    "promoCode": null
+  },
+  {
+    "user": {
+      "id": "USR010",
+      "name": "Olivia Martinez",
+      "avatar": "https://randomuser.me/api/portraits/women/50.jpg"
+    },
+    "email": "olivia.m@example.com",
+    "phone": null,
+    "plan": "Premium",
+    "registeredDate": "2024-08-05",
+    "status": "active",
+    "amount": 49.99,
+    "promoCode": "PREMIUM2024"
+  }
+]

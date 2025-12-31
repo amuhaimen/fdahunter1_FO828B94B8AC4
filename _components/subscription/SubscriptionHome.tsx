@@ -299,7 +299,7 @@ export default function SubscriptionHome() {
           <button className=" text-base text-[#99A0AE] font-semibold px-5 py-3 bg-[#181B25] rounded-lg cursor-pointer">Cancel</button>
           <button className=" text-base text-[#1D1F2C] font-semibold px-5 py-3 bg-[#00f474] rounded-lg cursor-pointer">Create Plan</button>
         </div>
-      </CustomModal>
+      </CustomModal>    
       <CustomModal
         isOpen={codeModalOpen}
         onClose={() => setCodeModalOpen(false)}
