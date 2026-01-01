@@ -148,7 +148,8 @@ export default function DashboardHome() {
       {/* Table Section with Pagination */}
       <div className="bg-[#0E121B] mt-4.5 p-6 rounded-2xl">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl text-white font-bold">Recent Predictions</h2>
+          <h2 
+           className="text-xl text-white font-bold">Recent Predictions</h2>
           <SearchBar 
             value={search} 
             onChange={setSearch} 
