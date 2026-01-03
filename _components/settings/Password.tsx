@@ -7,16 +7,16 @@ export default function Password() {
 
         <div className=' my-8 space-y-6'>
             <div>
-                <label htmlFor="old-password" className=' text-white text-base font-semibold'>Old Password <span className='text-[#E03137]'>*</span></label>
-                <input type="text" id='old-password' className=' py-4.5 px-5 border border-[#2B303B] rounded-[10px] w-full mt-2 ' />
+                <label htmlFor="old-password" className=' text-white text-base font-semibold '>Old Password <span className='text-[#E03137]'>*</span></label>
+                <input type="password" id='old-password' className=' py-4.5 px-5 border border-[#2B303B] rounded-[10px] w-full mt-2  text-white' placeholder=' Enter your Old Password'/>
             </div>
             <div>
-                <label htmlFor="new-password" className=' text-white text-base font-semibold'>New Password <span className='text-[#E03137]'>*</span></label>
-                <input type="text" id='new-password' className=' py-4.5 px-5 border border-[#2B303B] rounded-[10px] w-full mt-2 ' />
+                <label htmlFor="new-password" className=' text-white text-base font-semibold '>New Password <span className='text-[#E03137]'>*</span></label>
+                <input type="password" id='new-password' className=' py-4.5 px-5 border border-[#2B303B] rounded-[10px] w-full mt-2  text-white' placeholder=' New Password'/>
             </div>
             <div>
-                <label htmlFor="confirm-password" className=' text-white text-base font-semibold'>Confirm Password <span className='text-[#E03137]'>*</span></label>
-                <input type="text" id='confirm-password' className=' py-4.5 px-5 border border-[#2B303B] rounded-[10px] w-full mt-2 ' />
+                <label htmlFor="confirm-password" className=' text-white text-base font-semibold '>Confirm Password <span className='text-[#E03137]'>*</span></label>
+                <input type="password" id='confirm-password' className=' py-4.5 px-5 border border-[#2B303B] rounded-[10px] w-full mt-2  text-white' placeholder=' Confirm Password' />
             </div>
 
         </div>
