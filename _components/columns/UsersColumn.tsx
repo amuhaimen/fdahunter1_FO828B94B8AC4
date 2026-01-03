@@ -82,7 +82,7 @@ export const UsersColumn = [
         'Enterprise': 'text-[#8B5CF6] bg-[#3B0764]',
       };
       
-      const colorClass = planColors[value] || 'text-white bg-gray-700';
+      const colorClass = planColors[value] || 'text-[#0CAF60] bg-[#E7F7EF]';
       const [textColor, bgColor] = colorClass.split(' ');
       
       return (
@@ -128,20 +128,20 @@ export const UsersColumn = [
         },
         trial: {
           text: "Trial",
-          textColor: "text-[#F59E0B]",
-          bgColor: "bg-[#78350F]",
+          textColor: "text-[#F9C80E]",
+          bgColor: "bg-[#7D6407]",
         },
         expired: {
           text: "Expired",
-          textColor: "text-[#E6004C]",
-          bgColor: "bg-[#5C152D]",
+          textColor: "text-[#E9E9EA]",
+          bgColor: "bg-[#777980]",
         }
       };
       
       const config = statusConfig[value] || statusConfig.expired;
       
       return (
-        <div className={`px-3 py-1.5 rounded-lg ${config.bgColor}`}>
+        <div className={`px-3 py-1.5 inline rounded-lg ${config.bgColor}`}>
           <span className={`text-sm font-medium ${config.textColor}`}>
             {config.text}
           </span>
@@ -166,7 +166,7 @@ export const UsersColumn = [
       const isZero = value === 0;
       
       return (
-        <span className={`text-sm font-bold ${isPositive ? 'text-[#00F474]' : isZero ? 'text-gray-400' : 'text-[#E6004C]'}`}>
+        <span className={`text-sm font-bold ${isPositive ? 'text-white' : isZero ? 'text-gray-400' : 'text-[#E6004C]'}`}>
           {formattedAmount}
         </span>
       );

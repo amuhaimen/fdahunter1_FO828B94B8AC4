@@ -9,7 +9,7 @@ import { SearchBar } from "../reusable/SearchBar";
 import CustomDropdown from "../reusable/CustomDropdown";
 import DynamicTable from "../reusable/DynamicTable";
 import { UsersColumn } from "../columns/UsersColumn";
-import usersData from '../data/usersData.json'
+import usersData from "../data/usersData.json";
 
 interface StatCardProps {
   title: string;
@@ -114,25 +114,25 @@ export default function UsersHome() {
           />
         </div>
 
-         <div className="mt-6">
-                  <DynamicTable
-                    columns={UsersColumn}
-                    data={usersData } 
-                    // Don't pass pagination props to DynamicTable since we're handling externally
-                    hasWrapperBorder={false}
-                    headerStyles={{
-                      backgroundColor: "#323B49",
-                      textColor: "#CBD5E0",
-                      fontSize: "12px",
-                      padding: "16px",
-                      fontWeight: "600",
-                    }}
-                    roundedClass="rounded-b-none"
-                    minWidth={800}
-                    cellBorderColor="#323B49"
-                  />
-                  
-                  {/* <div className=" ">
+        <div className="mt-6">
+          <DynamicTable
+            columns={UsersColumn}
+            data={usersData}
+            // Don't pass pagination props to DynamicTable since we're handling externally
+            hasWrapperBorder={false}
+            headerStyles={{
+              backgroundColor: "#323B49",
+              textColor: "#CBD5E0",
+              fontSize: "12px",
+              padding: "16px",
+              fontWeight: "600",
+            }}
+            roundedClass="rounded-b-none"
+            minWidth={800}
+            cellBorderColor="#323B49"
+          />
+
+          {/* <div className=" ">
                     <DynamicPagination
                       currentPage={currentPage}
                       totalPages={totalPages}
@@ -147,7 +147,7 @@ export default function UsersHome() {
                       show={totalItems > 0}
                     />
                   </div> */}
-                </div>
+        </div>
       </div>
     </div>
   );
