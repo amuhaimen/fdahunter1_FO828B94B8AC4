@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Urbanist } from "next/font/google";
 import Sidebar from "@/_components/shared/Sidebar";
 import Header from "@/_components/shared/Header";
+import { AuthProvider } from "@/context/AuthContext";
  
  
  
