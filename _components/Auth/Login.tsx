@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { FiEye, FiEyeOff, FiMail, FiLock, FiAlertCircle } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { FiEye, FiEyeOff, FiMail, FiLock } from "react-icons/fi";
+import { useAuth } from "@/context/AuthContext";
+import { LoginResponse } from "@/services/authApi";
+import toast from "react-hot-toast";
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
@@ -10,7 +14,17 @@ export default function LoginForm() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,64 +32,133 @@ export default function LoginForm() {
     setErrors({});
 
     // Basic validation
-    const newErrors: { email?: string; password?: string } = {};
-    
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
+    if (!formData.email.trim()) {
+      toast.error("Email is required");
+      setErrors({ email: "Email is required" });
+      setIsLoading(false);
+      return;
     }
     
     if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+      toast.error("Password is required");
+      setErrors({ password: "Password is required" });
       setIsLoading(false);
       return;
     }
 
-    // TODO: Implement actual login API call
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Please enter a valid email address");
+      setErrors({ email: "Please enter a valid email address" });
+      setIsLoading(false);
+      return;
+    }
+
+    // Show loading toast
+    const loadingToast = toast.loading("Signing in...");
+
     try {
-      console.log("Login attempt:", formData);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await login(formData);
       
-      // For demo purposes - always show success
-      alert("Login successful! (This is a demo)");
+      if (response.success) {
+        // Dismiss loading toast
+        toast.dismiss(loadingToast);
+        
+        // Show success toast
+        toast.success("Login successful! Redirecting...", {
+          duration: 2000,
+        });
+        
+        // Redirect based on user type after delay
+        setTimeout(() => {
+          const userType = response.type;
+          if (userType === 'admin') {
+            router.push("/dashboard");
+          } else {
+            router.push("/");
+          }
+        }, 1500);
+      } else {
+        // Dismiss loading toast
+        toast.dismiss(loadingToast);
+        
+        // Show error toast from API response
+        let errorMessage = "Login failed. Please try again.";
+        
+        if (typeof response.message === 'string') {
+          errorMessage = response.message;
+        } else if (response.message?.message) {
+          errorMessage = response.message.message;
+        }
+        
+        toast.error(errorMessage);
+      }
       
-    } catch (error) {
-      setErrors({
-        general: "Login failed. Please check your credentials."
-      });
+    } catch (error: any) {
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
+      
+      console.error("Login form error:", error);
+      
+      // Show error toast
+      let errorMessage = "Login failed. Please try again.";
+      
+      if (error.success === false) {
+        if (typeof error.message === 'string') {
+          errorMessage = error.message;
+        } else if (error.message?.message) {
+          errorMessage = error.message.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleForgotPassword = () => {
-    // TODO: Implement forgot password flow
-    alert("Forgot password feature coming soon!");
-  };
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#0e121b' }}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-t-transparent border-green-500 mb-6"></div>
+          <h2 className="text-xl font-semibold text-white mb-2">Checking Authentication</h2>
+          <p className="text-gray-300">Please wait while we verify your session...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#0e121b' }}>
-      <div className="w-full max-w-md">
-        
-        {/* Login Form Card */}
-        <div 
-          className="rounded-2xl p-8 shadow-2xl border border-gray-800"
-          style={{ backgroundColor: '#181a25' }}
-        >
-          {errors.general && (
-            <div className="mb-6 p-4 rounded-lg flex items-center gap-3" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-              <FiAlertCircle className="text-red-500 flex-shrink-0" />
-              <p className="text-red-400 text-sm">{errors.general}</p>
+      
+      {/* Loading Overlay */}
+      {isLoading && (
+        <>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"></div>
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="flex flex-col items-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-t-transparent border-green-500 mb-6"></div>
+              <h2 className="text-xl font-semibold text-white mb-2">Signing In</h2>
+              <p className="text-gray-300">Please wait...</p>
             </div>
-          )}
+          </div>
+        </>
+      )}
+      
+      <div className="w-full max-w-md relative z-10">
+        
+        <div className="rounded-2xl p-8 shadow-2xl border border-gray-800 bg-gray-900 backdrop-blur-sm bg-opacity-90">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-white mb-2">Welcome Back</h1>
+            <p className="text-gray-400">Sign in to your account</p>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
@@ -91,36 +174,32 @@ export default function LoginForm() {
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className={`block w-full pl-10 pr-3 py-3 rounded-lg border bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
-                    errors.email 
-                      ? 'border-red-500 focus:ring-red-500' 
-                      : 'border-gray-700 focus:ring-emerald-500'
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value.trim() });
+                    if (errors.email) setErrors({ ...errors, email: undefined });
+                  }}
+                  className={`block w-full pl-10 pr-3 py-3 rounded-lg border bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
+                    errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-700 focus:ring-green-500 focus:border-green-500'
                   }`}
                   placeholder="you@example.com"
-                  style={{ caretColor: '#2ef474' }}
+                  disabled={isLoading}
                 />
               </div>
               {errors.email && (
-                <p className="mt-2 text-sm text-red-400">{errors.email}</p>
+                <p className="mt-2 text-sm text-red-400 flex items-center gap-1 animate-pulse">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  {errors.email}
+                </p>
               )}
             </div>
 
             {/* Password Field */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-300">
-                  Password
-                </label>
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-sm font-medium transition-colors hover:text-emerald-400"
-                  style={{ color: '#2ef474' }}
-                >
-                  Forgot Password?
-                </button>
-              </div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                Password
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FiLock className="h-5 w-5 text-gray-500" />
@@ -129,71 +208,101 @@ export default function LoginForm() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className={`block w-full pl-10 pr-12 py-3 rounded-lg border bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
-                    errors.password 
-                      ? 'border-red-500 focus:ring-red-500' 
-                      : 'border-gray-700 focus:ring-emerald-500'
+                  onChange={(e) => {
+                    setFormData({ ...formData, password: e.target.value });
+                    if (errors.password) setErrors({ ...errors, password: undefined });
+                  }}
+                  className={`block w-full pl-10 pr-12 py-3 rounded-lg border bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
+                    errors.password ? 'border-red-500 focus:ring-red-500' : 'border-gray-700 focus:ring-green-500 focus:border-green-500'
                   }`}
                   placeholder="Enter your password"
-                  style={{ caretColor: '#2ef474' }}
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  style={{ color: '#9ca3af' }}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-300 transition-colors"
+                  disabled={isLoading}
                 >
                   {showPassword ? (
-                    <FiEyeOff className="h-5 w-5 hover:text-gray-300 transition-colors" />
+                    <FiEyeOff className="h-5 w-5" />
                   ) : (
-                    <FiEye className="h-5 w-5 hover:text-gray-300 transition-colors" />
+                    <FiEye className="h-5 w-5" />
                   )}
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-2 text-sm text-red-400">{errors.password}</p>
+                <p className="mt-2 text-sm text-red-400 flex items-center gap-1 animate-pulse">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  {errors.password}
+                </p>
               )}
             </div>
 
-            {/* Remember Me Checkbox */}
-            <div className="flex items-center">
-              <input
-                id="remember"
-                type="checkbox"
-                className="h-4 w-4 rounded border-gray-700 bg-gray-900 focus:ring-emerald-500 focus:ring-offset-gray-900 focus:ring-offset-2"
-                style={{ accentColor: '#2ef474' }}
-              />
-              <label htmlFor="remember" className="ml-2 block text-sm text-gray-300">
-                Remember me
-              </label>
+            {/* Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember"
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-gray-700 bg-gray-800 focus:ring-green-500 focus:ring-offset-gray-900 focus:ring-offset-2"
+                  style={{ accentColor: '#2ef474' }}
+                  disabled={isLoading}
+                />
+                <label htmlFor="remember" className="ml-2 block text-sm text-gray-300">
+                  Remember me
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={() => toast.info("Forgot password feature coming soon!")}
+                className="text-sm font-medium text-green-400 hover:text-green-300 transition-colors disabled:opacity-50"
+                disabled={isLoading}
+              >
+                Forgot password?
+              </button>
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 rounded-lg font-medium text-gray-900 transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-emerald-500/20"
+              className="w-full py-3.5 px-4 rounded-lg font-semibold text-gray-900 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 relative overflow-hidden group"
               style={{ 
-                backgroundColor: '#2ef474'
+                background: 'linear-gradient(135deg, #2ef474 0%, #22c55e 100%)',
+                boxShadow: '0 10px 25px -5px rgba(46, 244, 116, 0.3)'
               }}
             >
-              {isLoading ? (
-                <div className="flex items-center justify-center">
-                  <svg className="animate-spin h-5 w-5 mr-3 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Signing in...
-                </div>
-              ) : (
-                <span className="font-semibold">Sign In</span>
-              )}
+              <span className="relative z-10">
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <svg className="animate-spin h-5 w-5 mr-3 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Signing in...
+                  </div>
+                ) : (
+                  "Sign In"
+                )}
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </button>
           </form>
-        </div>
 
-      
+          {/* Demo Credentials Hint */}
+          <div className="mt-8 pt-6 border-t border-gray-800">
+            <div className="text-center">
+              <p className="text-sm text-gray-400 mb-2">Demo Credentials (if applicable)</p>
+              <div className="text-xs text-gray-500 space-y-1">
+                <p>Email: test@example.com</p>
+                <p>Password: password123</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

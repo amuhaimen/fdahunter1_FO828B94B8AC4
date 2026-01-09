@@ -4,6 +4,7 @@ import { Urbanist } from "next/font/google";
 import Sidebar from "@/_components/shared/Sidebar";
 import Header from "@/_components/shared/Header";
 import { AuthProvider } from "@/context/AuthContext";
+import ToastProvider from "@/_components/ToasterProvider";
  
  
  
@@ -35,6 +36,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <Header onMenuClick={() => setIsSidebarOpen(true)} />
 
           <main className="flex-1 overflow-auto  min-w-0 min-h-0  p-6 bg-[#181a25]">
+          
             {children}
        
           </main>

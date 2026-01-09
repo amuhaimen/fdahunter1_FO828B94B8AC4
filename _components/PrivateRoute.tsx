@@ -1,8 +1,8 @@
+'use client';
 import { useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import authApi from '@/services/authApi';
- 
+import toast from 'react-hot-toast';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
@@ -12,32 +12,32 @@ interface PrivateRouteProps {
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ 
   children, 
-  allowedRoles = ['admin'],
-  redirectTo = '/login'
+  allowedRoles = ['admin', 'user'],
+  redirectTo = '/'
 }) => {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, userType } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    // Don't redirect while loading
     if (isLoading) return;
 
-    // Redirect if not authenticated
     if (!isAuthenticated) {
+      toast.error("Please login to access this page", {
+        id: 'auth-required', // Prevent duplicate toasts
+      });
       router.push(redirectTo);
       return;
     }
 
     // Check role-based access
-    if (user && allowedRoles.length > 0) {
-      const userType = user.type || authApi.getUserType();
-      if (userType && !allowedRoles.includes(userType as 'admin' | 'user')) {
-        router.push('/unauthorized');
-      }
+    if (userType && allowedRoles.length > 0 && !allowedRoles.includes(userType as 'admin' | 'user')) {
+      toast.error("You don't have permission to access this page", {
+        id: 'no-permission',
+      });
+      router.push('/unauthorized');
     }
-  }, [isAuthenticated, isLoading, user, router, allowedRoles, redirectTo]);
+  }, [isAuthenticated, isLoading, userType, router, allowedRoles, redirectTo]);
 
-  // Show loading while checking auth
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -46,27 +46,23 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
     );
   }
 
-  // Don't render anything if not authenticated (will redirect)
   if (!isAuthenticated) {
     return null;
   }
 
-  // Check role-based access before rendering
-  if (user && allowedRoles.length > 0) {
-    const userType = user.type || authApi.getUserType();
-    if (userType && !allowedRoles.includes(userType as 'admin' | 'user')) {
-      return null; // Will redirect in useEffect
-    }
+  if (userType && allowedRoles.length > 0 && !allowedRoles.includes(userType as 'admin' | 'user')) {
+    return null;
   }
 
   return <>{children}</>;
 };
 
-// Helper components for specific roles
 export const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <PrivateRoute allowedRoles={['admin']}>{children}</PrivateRoute>;
 };
 
- 
+export const UserRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return <PrivateRoute allowedRoles={['user']}>{children}</PrivateRoute>;
+};
 
 export default PrivateRoute;

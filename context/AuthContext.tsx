@@ -1,15 +1,16 @@
+"use client";
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter } from 'next/router';
-import authApi, { LoginRequest, LoginResponse, User } from '@/services/authApi';
- 
+import { useRouter } from 'next/navigation';
+import authApi, { LoginRequest, LoginResponse } from '@/services/authApi';
 
 interface AuthContextType {
-  user: User | null;
   isLoading: boolean;
   login: (credentials: LoginRequest) => Promise<LoginResponse>;
-  logout: () => Promise<void>;
+  logout: () => void;
   isAuthenticated: boolean;
-  checkAuth: () => boolean;
+  userType: string | null;
+  userEmail: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,34 +28,16 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  // Check initial auth state
   useEffect(() => {
-    const initAuth = async () => {
-      setIsLoading(true);
-      
-      if (authApi.isAuthenticated()) {
-        try {
-          const response = await authApi.getProfile();
-          if (response.success && response.data) {
-            setUser(response.data);
-          } else {
-            authApi.clearAuth();
-            setUser(null);
-          }
-        } catch (error) {
-          console.error('Failed to fetch user profile:', error);
-          authApi.clearAuth();
-          setUser(null);
-        }
-      }
-      
-      setIsLoading(false);
-    };
-
-    initAuth();
+    console.log("Initial auth check:", {
+      isAuthenticated: authApi.isAuthenticated(),
+      userType: authApi.getUserType(),
+      userEmail: authApi.getUserEmail()
+    });
   }, []);
 
   const login = async (credentials: LoginRequest): Promise<LoginResponse> => {
@@ -63,50 +46,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await authApi.login(credentials);
       
       if (response.success) {
-        localStorage.setItem('user_type', response.type);
+        console.log("Login successful");
         
-        try {
-          const profileResponse = await authApi.getProfile();
-          if (profileResponse.success && profileResponse.data) {
-            setUser(profileResponse.data);
-          }
-        } catch (profileError) {
-          console.error('Failed to fetch profile after login:', profileError);
-        }
+        // Give localStorage time to save
+        setTimeout(() => {
+          console.log("After login localStorage check:", {
+            token: localStorage.getItem("access_token")?.substring(0, 20) + "...",
+            user_type: localStorage.getItem("user_type"),
+            user_email: localStorage.getItem("user_email")
+          });
+        }, 100);
       }
       
       return response;
     } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+      // The error is now a LoginResponse object
+      console.error('Login error in context:', error);
+      throw error; // Pass the error response object
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = async (): Promise<void> => {
-    try {
-      await authApi.logout();
-    } catch (error) {
-      console.error('Logout API error:', error);
-    } finally {
-      authApi.clearAuth();
-      setUser(null);
-      router.push('/login');
-    }
-  };
-
-  const checkAuth = (): boolean => {
-    return authApi.isAuthenticated();
+  const logout = (): void => {
+    authApi.clearAuth();
+    router.push('/');
   };
 
   const value: AuthContextType = {
-    user,
     isLoading,
     login,
     logout,
-    isAuthenticated: !!user && authApi.isAuthenticated(),
-    checkAuth,
+    isAuthenticated: authApi.isAuthenticated(),
+    userType: authApi.getUserType(),
+    userEmail: authApi.getUserEmail(),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
