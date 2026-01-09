@@ -1,195 +1,113 @@
-"use client";
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import authApi, { LoginRequest, User, ApiResponse } from '@/services/authApi';
+import { useRouter } from 'next/router';
+import authApi, { LoginRequest, LoginResponse, User } from '@/services/authApi';
+ 
 
-// ============ TYPES ============
-interface AuthState {
+interface AuthContextType {
   user: User | null;
-  token: string | null;
-  userType: string | null;
   isLoading: boolean;
-  isAuthenticated: boolean;
-}
-
-interface AuthContextType extends AuthState {
-  login: (credentials: LoginRequest) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<LoginResponse>;
   logout: () => Promise<void>;
-  register: (userData: any) => Promise<ApiResponse>;
-  loadUser: () => Promise<void>;
-  clearAuth: () => void;
+  isAuthenticated: boolean;
+  checkAuth: () => boolean;
 }
 
-// ============ INITIAL STATE ============
-const initialState: AuthState = {
-  user: null,
-  token: null,
-  userType: null,
-  isLoading: true,
-  isAuthenticated: false,
-};
-
-// ============ CREATE CONTEXT ============
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ============ PROVIDER COMPONENT ============
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [authState, setAuthState] = useState<AuthState>(initialState);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
-  // Initialize auth state on mount
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+
   useEffect(() => {
     const initAuth = async () => {
-      try {
-        const token = authApi.getToken();
-        const userType = authApi.getUserType();
-        
-        if (token) {
-          // Load user profile if token exists
-          await loadUser();
-        } else {
-          setAuthState({
-            ...initialState,
-            isLoading: false,
-          });
+      setIsLoading(true);
+      
+      if (authApi.isAuthenticated()) {
+        try {
+          const response = await authApi.getProfile();
+          if (response.success && response.data) {
+            setUser(response.data);
+          } else {
+            authApi.clearAuth();
+            setUser(null);
+          }
+        } catch (error) {
+          console.error('Failed to fetch user profile:', error);
+          authApi.clearAuth();
+          setUser(null);
         }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        setAuthState({
-          ...initialState,
-          isLoading: false,
-        });
       }
+      
+      setIsLoading(false);
     };
 
     initAuth();
   }, []);
 
-  // ============ AUTH FUNCTIONS ============
-
-  // Login function
-  const login = async (credentials: LoginRequest): Promise<void> => {
+  const login = async (credentials: LoginRequest): Promise<LoginResponse> => {
     try {
-      setAuthState(prev => ({ ...prev, isLoading: true }));
-      
+      setIsLoading(true);
       const response = await authApi.login(credentials);
       
       if (response.success) {
-        const token = response.authorization.access_token;
-        const userType = response.type;
+        localStorage.setItem('user_type', response.type);
         
-        // Set initial state with token
-        setAuthState({
-          user: null,
-          token,
-          userType,
-          isLoading: true,
-          isAuthenticated: true,
-        });
-        
-        // Load user profile after successful login
-        await loadUser();
-      } else {
-        throw new Error(response.message || 'Login failed');
+        try {
+          const profileResponse = await authApi.getProfile();
+          if (profileResponse.success && profileResponse.data) {
+            setUser(profileResponse.data);
+          }
+        } catch (profileError) {
+          console.error('Failed to fetch profile after login:', profileError);
+        }
       }
-    } catch (error: any) {
-      setAuthState({
-        ...initialState,
-        isLoading: false,
-      });
-      throw error;
-    }
-  };
-
-  // Register function
-  const register = async (userData: any): Promise<ApiResponse> => {
-    try {
-      setAuthState(prev => ({ ...prev, isLoading: true }));
       
-      const response = await authApi.register(userData);
-      
-      setAuthState(prev => ({ ...prev, isLoading: false }));
       return response;
-    } catch (error: any) {
-      setAuthState(prev => ({ ...prev, isLoading: false }));
+    } catch (error) {
+      console.error('Login error:', error);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Load user profile
-  const loadUser = async (): Promise<void> => {
-    try {
-      if (!authApi.isAuthenticated()) {
-        setAuthState({
-          ...initialState,
-          isLoading: false,
-        });
-        return;
-      }
-
-      const response = await authApi.getProfile();
-      
-      if (response.success && response.data) {
-        setAuthState({
-          user: response.data,
-          token: authApi.getToken(),
-          userType: authApi.getUserType(),
-          isLoading: false,
-          isAuthenticated: true,
-        });
-      } else {
-        throw new Error(response.message || 'Failed to load user');
-      }
-    } catch (error: any) {
-      console.error('Load user error:', error);
-      
-      // If token is invalid, clear auth
-      if (error.status === 401) {
-        clearAuth();
-      } else {
-        setAuthState({
-          ...initialState,
-          isLoading: false,
-        });
-      }
-    }
-  };
-
-  // Logout function
   const logout = async (): Promise<void> => {
     try {
-      setAuthState(prev => ({ ...prev, isLoading: true }));
       await authApi.logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Logout API error:', error);
     } finally {
-      clearAuth();
+      authApi.clearAuth();
+      setUser(null);
+      router.push('/login');
     }
   };
 
-  // Clear auth state
-  const clearAuth = (): void => {
-    authApi.clearAuth();
-    setAuthState({
-      ...initialState,
-      isLoading: false,
-    });
+  const checkAuth = (): boolean => {
+    return authApi.isAuthenticated();
   };
 
-  // ============ CONTEXT VALUE ============
-  const contextValue: AuthContextType = {
-    ...authState,
+  const value: AuthContextType = {
+    user,
+    isLoading,
     login,
     logout,
-    register,
-    loadUser,
-    clearAuth,
+    isAuthenticated: !!user && authApi.isAuthenticated(),
+    checkAuth,
   };
 
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
-export default AuthContext;

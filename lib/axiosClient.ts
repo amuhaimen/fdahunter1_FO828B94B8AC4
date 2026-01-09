@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from "axios";
 
 const axiosClient: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend.energytransportx.com",
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://fdahunter.signalsmind.com",
   headers: {
     "Content-Type": "application/json",
   },
