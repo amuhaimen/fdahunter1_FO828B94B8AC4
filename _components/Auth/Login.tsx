@@ -252,11 +252,11 @@ export default function LoginForm() {
 
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
+              <div className="flex items-center ">
                 <input
                   id="remember"
                   type="checkbox"
-                  className="h-4 w-4 rounded border-gray-700 bg-gray-800 focus:ring-green-500 focus:ring-offset-gray-900 focus:ring-offset-2"
+                  className="h-4 w-4 rounded border-gray-700 bg-gray-800 focus:ring-green-500 focus:ring-offset-gray-900 focus:ring-offset-2 cursor-pointer"
                   style={{ accentColor: '#2ef474' }}
                   disabled={isLoading}
                 />
@@ -267,7 +267,7 @@ export default function LoginForm() {
               <button
                 type="button"
                 onClick={() => toast.error("Forgot password feature coming soon!")}
-                className="text-sm font-medium text-green-400 hover:text-green-300 transition-colors disabled:opacity-50"
+                className="text-sm font-medium text-green-400 hover:text-green-300 transition-colors disabled:opacity-50 cursor-pointer"
                 disabled={isLoading}
               >
                 Forgot password?
