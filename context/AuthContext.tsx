@@ -3,11 +3,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import authApi, { LoginRequest, LoginResponse } from '@/services/authApi';
+import toast from 'react-hot-toast';
 
 interface AuthContextType {
   isLoading: boolean;
   login: (credentials: LoginRequest) => Promise<LoginResponse>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
   userType: string | null;
   userEmail: string | null;
@@ -29,15 +30,36 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [authState, setAuthState] = useState({
+    isAuthenticated: authApi.isAuthenticated(),
+    userType: authApi.getUserType(),
+    userEmail: authApi.getUserEmail()
+  });
   const router = useRouter();
 
   // Check initial auth state
   useEffect(() => {
-    console.log("Initial auth check:", {
-      isAuthenticated: authApi.isAuthenticated(),
-      userType: authApi.getUserType(),
-      userEmail: authApi.getUserEmail()
-    });
+    const checkAuth = () => {
+      const authStatus = {
+        isAuthenticated: authApi.isAuthenticated(),
+        userType: authApi.getUserType(),
+        userEmail: authApi.getUserEmail()
+      };
+      setAuthState(authStatus);
+      console.log("Initial auth check:", authStatus);
+    };
+    
+    checkAuth();
+    
+    // Listen for storage changes (for logout from other tabs)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'access_token' || e.key === 'user_type') {
+        checkAuth();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const login = async (credentials: LoginRequest): Promise<LoginResponse> => {
@@ -46,40 +68,72 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await authApi.login(credentials);
       
       if (response.success) {
-        console.log("Login successful");
+        // Update auth state after login
+        setAuthState({
+          isAuthenticated: true,
+          userType: authApi.getUserType(),
+          userEmail: authApi.getUserEmail()
+        });
         
-        // Give localStorage time to save
-        setTimeout(() => {
-          console.log("After login localStorage check:", {
-            token: localStorage.getItem("access_token")?.substring(0, 20) + "...",
-            user_type: localStorage.getItem("user_type"),
-            user_email: localStorage.getItem("user_email")
-          });
-        }, 100);
+        console.log("Login successful - Context updated");
+        
+        // Show success toast
+        
       }
       
       return response;
-    } catch (error) {
-      // The error is now a LoginResponse object
+    } catch (error: any) {
       console.error('Login error in context:', error);
-      throw error; // Pass the error response object
+      toast.error(error.message || 'Login failed');
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = (): void => {
+// AuthContext.tsx (logout function only - already implemented)
+const logout = async (): Promise<void> => {
+  try {
+    setIsLoading(true);
+    
+    // Clear all authentication data
     authApi.clearAuth();
+    
+    // Update state immediately
+    setAuthState({
+      isAuthenticated: false,
+      userType: null,
+      userEmail: null
+    });
+    
+    console.log("Logout successful - All tokens removed");
+    
+    // Show success message
+    toast.success('Logged out successfully');
+    
+    // Redirect to home page
     router.push('/');
-  };
-
+    
+    // Force a router refresh to clear any cached protected routes
+    setTimeout(() => {
+      router.refresh();
+    }, 100);
+    
+  } catch (error) {
+    console.error('Logout error:', error);
+    toast.error('Logout failed. Please try again.');
+    throw error;
+  } finally {
+    setIsLoading(false);
+  }
+};
   const value: AuthContextType = {
     isLoading,
     login,
     logout,
-    isAuthenticated: authApi.isAuthenticated(),
-    userType: authApi.getUserType(),
-    userEmail: authApi.getUserEmail(),
+    isAuthenticated: authState.isAuthenticated,
+    userType: authState.userType,
+    userEmail: authState.userEmail,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

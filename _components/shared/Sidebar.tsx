@@ -1,3 +1,4 @@
+// sidebar.tsx (updated)
 import React, { useState } from "react";
 import Link from "next/link";
 import { X, Users } from "lucide-react";
@@ -5,7 +6,6 @@ import Image from "next/image";
 import logo from "@/public/sideber/images/logo.png";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
-// import { CookieHelper } from "@/helper/cookie.helper";
 import toast from "react-hot-toast";
 import DashboardIcon from "../icons/sidebar/DashboardIcon";
 import StaticsIcon from "../icons/sidebar/StaticsIcon";
@@ -13,6 +13,9 @@ import WalletIcon from "../icons/sidebar/WalletIcon";
 import UsersIcon from "../icons/sidebar/UsersIcon";
 import SettingsIcon from "../icons/sidebar/SettingsIcon";
 import LogoutIcon from "../icons/sidebar/LogoutIcon";
+ 
+import { useAuth } from "@/context/AuthContext";
+import LogoutConfirmation from "../LogOutConfirmation";
 
 const menuItems = [
   { title: "Dashboard", icon: DashboardIcon, href: "/dashboard" },
@@ -69,6 +72,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { logout } = useAuth();
 
   const isMenuItemActive = (itemHref: string) => {
     if (itemHref === "/dashboard") {
@@ -108,22 +113,30 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     return isMenuItemActive(itemHref) || isActiveParent(itemHref);
   };
 
-  //   const handleLogout = () => {
-  //     // Perform logout actions
-  //     CookieHelper.destroy({ key: 'access_token' });
-  //     toast.success('Successfully Logged Out', {
-  //       duration: 3000,
-  //       iconTheme: {
-  //         primary: "#2d6bb4",
-  //         secondary: "#FFFFFF",
-  //       },
-  //     });
-  //     router.push("/");
-  //   };
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+    onClose(); // Close sidebar on mobile
+  };
+
+  const handleConfirmLogout = async () => {
+    try {
+      setShowLogoutModal(false);
+      await logout(); // Call the logout function from AuthContext
+      // Note: The logout function already handles redirection and localStorage cleanup
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast.error("Logout failed. Please try again.");
+    }
+  };
+
+  const handleCancelLogout = () => {
+    setShowLogoutModal(false);
+  };
 
   const handleBottomItemClick = (item: (typeof bottomMenuItems)[0]) => {
     if (item.isAction && item.title === "Logout") {
-      //   handleLogout();
+      handleLogoutClick();
+      return;
     }
     onClose(); // Close sidebar on mobile after clicking
   };
@@ -134,21 +147,20 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         className={`fixed top-0 left-0 z-40 h-screen transition-transform duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
           md:relative md:translate-x-0
-          w-65  flex flex-col bg-[#181a25] border-r border-[#323B49]`}
+          w-65 flex flex-col bg-[#181a25] border-r border-[#323B49]`}
       >
         {/* Header */}
         <div className="flex items-center justify-between py-5 px-6 border-b border-[#323B49]">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="#" className="cursor-pointer">
-              {/* <Image src={logo} alt="logo" width={78} height={40} priority /> */}
-              <h1 className=" text-3xl font-bold text-white">LOGO</h1>
+            <Link href="/dashboard" className="cursor-pointer" onClick={onClose}>
+              <h1 className="text-3xl font-bold text-white">LOGO</h1>
             </Link>
           </div>
 
           {/* Close (mobile only) */}
           <button
-            className="p-2 rounded-lg hover:bg-gray-100 md:hidden"
+            className="p-2 rounded-lg hover:bg-gray-700 md:hidden"
             onClick={onClose}
             aria-label="Close sidebar"
           >
@@ -252,6 +264,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           })}
         </div>
       </aside>
+
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmation
+        isOpen={showLogoutModal}
+        onClose={handleCancelLogout}
+        onConfirm={handleConfirmLogout}
+      />
     </>
   );
 }

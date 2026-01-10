@@ -139,18 +139,27 @@ export default function LoginForm() {
     <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#0e121b' }}>
       
       {/* Loading Overlay */}
-      {isLoading && (
-        <>
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"></div>
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="flex flex-col items-center">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-t-transparent border-green-500 mb-6"></div>
-              <h2 className="text-xl font-semibold text-white mb-2">Signing In</h2>
-              <p className="text-gray-300">Please wait...</p>
-            </div>
-          </div>
-        </>
-      )}
+  {isLoading && (
+  <>
+    {/* Fixed Overlay - Dark with opacity */}
+    <div className="fixed inset-0 bg-black/70  z-40"></div>
+    
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="flex flex-col items-center bg-gray-900/90 p-8 rounded-2xl border border-gray-700 backdrop-blur-sm">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-t-transparent border-green-500 mb-6"></div>
+        <h2 className="text-2xl font-bold text-white mb-2">Signing In</h2>
+        <p className="text-gray-300">Please wait while we authenticate...</p>
+        
+        {/* Optional: Loading dots animation */}
+        <div className="flex space-x-1 mt-4">
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse delay-150"></div>
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse delay-300"></div>
+        </div>
+      </div>
+    </div>
+  </>
+)}
       
       <div className="w-full max-w-md relative z-10">
         
@@ -257,7 +266,7 @@ export default function LoginForm() {
               </div>
               <button
                 type="button"
-                onClick={() => toast.info("Forgot password feature coming soon!")}
+                onClick={() => toast.error("Forgot password feature coming soon!")}
                 className="text-sm font-medium text-green-400 hover:text-green-300 transition-colors disabled:opacity-50"
                 disabled={isLoading}
               >
@@ -292,16 +301,7 @@ export default function LoginForm() {
             </button>
           </form>
 
-          {/* Demo Credentials Hint */}
-          <div className="mt-8 pt-6 border-t border-gray-800">
-            <div className="text-center">
-              <p className="text-sm text-gray-400 mb-2">Demo Credentials (if applicable)</p>
-              <div className="text-xs text-gray-500 space-y-1">
-                <p>Email: test@example.com</p>
-                <p>Password: password123</p>
-              </div>
-            </div>
-          </div>
+         
         </div>
       </div>
     </div>

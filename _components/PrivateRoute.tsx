@@ -22,9 +22,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
     if (isLoading) return;
 
     if (!isAuthenticated) {
-      toast.error("Please login to access this page", {
-        id: 'auth-required', // Prevent duplicate toasts
-      });
+      // Toast message removed as requested
       router.push(redirectTo);
       return;
     }
