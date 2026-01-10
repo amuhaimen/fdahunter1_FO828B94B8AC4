@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminRoute } from "@/_components/PrivateRoute";
 import SettingsSidebar from "@/_components/settings/SettingsSidebar";
 
  
@@ -10,7 +11,7 @@ interface SettingsLayoutProps {
 
 export default function SettingsLayout({ children }: SettingsLayoutProps) {
   return (
-    <div>
+    <AdminRoute>
      
       <div className="flex  flex-col xl:flex-row  gap-6 ">
         <div className="">
@@ -18,6 +19,6 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
         </div>
         <div className=" flex-1">{children}</div>
       </div>
-    </div>
+    </AdminRoute>
   );
 }

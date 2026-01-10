@@ -5,6 +5,7 @@ import { Menu } from "lucide-react";
 import profileImg from '@/public/profilePic.png'
 import MessageIcon from "../icons/header/MessageIcon";
 import DropdowonIcon from "../icons/header/DropdownIcon";
+import PrivateRoute from "../PrivateRoute";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -30,7 +31,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                               pathname.startsWith("/dashboard/notification/");
 
   return (
-    <>
+    <PrivateRoute>
       <header className="bg-[#181a25]  ">
         <div className="flex items-center justify-between py-5.5 px-6 border-b border-[#323B49]">
           {/* left content  */}
@@ -55,6 +56,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </div>
         </div>
       </header>
-    </>
+    </PrivateRoute>
   );
 }

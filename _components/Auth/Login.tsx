@@ -33,14 +33,14 @@ export default function LoginForm() {
 
     // Basic validation
     if (!formData.email.trim()) {
-      toast.error("Email is required");
+     
       setErrors({ email: "Email is required" });
       setIsLoading(false);
       return;
     }
     
     if (!formData.password) {
-      toast.error("Password is required");
+     
       setErrors({ password: "Password is required" });
       setIsLoading(false);
       return;
@@ -56,14 +56,14 @@ export default function LoginForm() {
     }
 
     // Show loading toast
-    const loadingToast = toast.loading("Signing in...");
+    // const loadingToast = toast.loading("Signing in...");
 
     try {
       const response = await login(formData);
       
       if (response.success) {
         // Dismiss loading toast
-        toast.dismiss(loadingToast);
+        // toast.dismiss(loadingToast);
         
         // Show success toast
         toast.success("Login successful! Redirecting...", {
@@ -81,7 +81,7 @@ export default function LoginForm() {
         }, 1500);
       } else {
         // Dismiss loading toast
-        toast.dismiss(loadingToast);
+        // toast.dismiss(loadingToast);
         
         // Show error toast from API response
         let errorMessage = "Login failed. Please try again.";
@@ -97,7 +97,7 @@ export default function LoginForm() {
       
     } catch (error: any) {
       // Dismiss loading toast
-      toast.dismiss(loadingToast);
+      // toast.dismiss(loadingToast);
       
       console.error("Login form error:", error);
       

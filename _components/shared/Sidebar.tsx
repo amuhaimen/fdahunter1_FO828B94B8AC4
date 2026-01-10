@@ -16,6 +16,7 @@ import LogoutIcon from "../icons/sidebar/LogoutIcon";
  
 import { useAuth } from "@/context/AuthContext";
 import LogoutConfirmation from "../LogOutConfirmation";
+import PrivateRoute from "../PrivateRoute";
 
 const menuItems = [
   { title: "Dashboard", icon: DashboardIcon, href: "/dashboard" },
@@ -142,7 +143,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   };
 
   return (
-    <>
+     
+    <PrivateRoute>
+
       <aside
         className={`fixed top-0 left-0 z-40 h-screen transition-transform duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
@@ -271,6 +274,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         onClose={handleCancelLogout}
         onConfirm={handleConfirmLogout}
       />
-    </>
+    </PrivateRoute>
+  
   );
 }
