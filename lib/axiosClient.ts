@@ -1,7 +1,8 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from "axios";
 
 const axiosClient: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://fdahunter.signalsmind.com",
+  baseURL: "http://192.168.7.102:4010",
+  //  process.env.NEXT_PUBLIC_API_BASE_URL || "http://192.168.7.102:4010",
   headers: {
     "Content-Type": "application/json",
   },
@@ -12,7 +13,7 @@ const axiosClient: AxiosInstance = axios.create({
 axiosClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("access_token");
+      const token = localStorage.getItem("token");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }

@@ -8,15 +8,31 @@ export interface LoginRequest {
 
 export interface Authorization {
   type: string;
-  access_token: string;
+  token: string;
   refresh_token: string;
 }
 
 export interface LoginResponse {
   success: boolean;
   message: string | { message: string; error: string; statusCode: number };
-  authorization?: Authorization;
-  type?: "admin" | "user";
+  data?: {
+    id: string;
+    name: string;
+    email: string;
+    gender: string | null;
+    date_of_birth: string | null;
+    avatar_url: string | null;
+    catagoary: string | null;
+    type: "admin" | "user";
+    isSubscriber: boolean;
+    realSubscriber: boolean;
+    createdAt: string;
+    updatedAt: string;
+    avatar: string | null;
+  };
+  token?: string;  // Token is at root level, not inside authorization
+  categoryIncluded?: boolean;
+  type?: "admin" | "user";  // User type is in data.type, but keep this if needed
 }
 
 // ============ ONLY LOGIN FUNCTION ============
@@ -27,11 +43,13 @@ const authApi = {
       const response = await axiosClient.post<LoginResponse>("/api/auth/login", credentials);
       
       // Store tokens in localStorage if success
-      if (typeof window !== "undefined" && response.data.success) {
-        localStorage.setItem("access_token", response.data.authorization!.access_token);
-        localStorage.setItem("refresh_token", response.data.authorization!.refresh_token);
-        localStorage.setItem("user_type", response.data.type!);
+      if (typeof window !== "undefined" && response.data.success && response.data.token) {
+        localStorage.setItem("token", response.data.token);
+        // Store refresh_token if available (check response structure)
+        localStorage.setItem("user_type", response.data.data?.type || "user");
         localStorage.setItem("user_email", credentials.email);
+        localStorage.setItem("user_id", response.data.data?.id || "");
+        localStorage.setItem("user_name", response.data.data?.name || "");
       }
       
       return response.data;
@@ -71,7 +89,7 @@ const authApi = {
   // Check if user is authenticated
   isAuthenticated: (): boolean => {
     if (typeof window === "undefined") return false;
-    return !!localStorage.getItem("access_token");
+    return !!localStorage.getItem("token");
   },
 
   // Get user type
@@ -89,10 +107,11 @@ const authApi = {
   // Clear all auth data
   clearAuth: (): void => {
     if (typeof window !== "undefined") {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("token");
       localStorage.removeItem("user_type");
       localStorage.removeItem("user_email");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("user_name");
     }
   },
 };

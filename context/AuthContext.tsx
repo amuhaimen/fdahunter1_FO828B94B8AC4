@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // Listen for storage changes (for logout from other tabs)
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'access_token' || e.key === 'user_type') {
+      if (e.key === 'token' || e.key === 'user_type') {
         checkAuth();
       }
     };
