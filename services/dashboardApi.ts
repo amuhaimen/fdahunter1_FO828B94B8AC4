@@ -67,6 +67,36 @@ export interface PredictionsParams {
   category?: string;
 }
 
+// ==========================================================
+export interface DashboardPredictionsStats {
+  total_records: {
+    total_records: number;
+    last_month: number;
+    status: "up" | "down";
+  };
+  active_predictions: {
+    current: number;
+    last_month: number;
+    status: "up" | "down";
+  };
+  total_win: {
+    total_win: number;
+    last_month: number;
+    status: "up" | "down";
+  };
+  overall_win_rate: {
+    win_rate: number;
+    last_month: number;
+    status: "up" | "down";
+  };
+}
+
+export interface DashboardPredictionsResponse {
+  success: boolean;
+  message: string;
+  data: DashboardPredictionsStats;
+}
+
 // ============ DASHBOARD API FUNCTIONS ============
 export const dashboardApi = {
   // Get dashboard statistics
@@ -142,6 +172,41 @@ export const dashboardApi = {
           itemsPerPage: params?.limit || 10,
           hasNextPage: false,
           hasPrevPage: false
+        }
+      };
+      
+      throw errorResponse;
+    }
+  },
+
+
+    getDashboardPredictionstats: async (): Promise<DashboardPredictionsResponse> => {
+    try {
+      const response = await axiosClient.get<DashboardPredictionsResponse>("/api/dashboard/predictions");
+      return response.data;
+    } catch (error: any) {
+      console.log("Dashboard Predictions API Error:", error);
+      
+      let errorMessage = "Failed to fetch dashboard predictions statistics.";
+      
+      // Handle different error response structures
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      // Return error response with default data
+      const errorResponse: DashboardPredictionsResponse = {
+        success: false,
+        message: errorMessage,
+        data: {
+          total_records: { total_records: 0, last_month: 0, status: "down" },
+          active_predictions: { current: 0, last_month: 0, status: "down" },
+          total_win: { total_win: 0, last_month: 0, status: "down" },
+          overall_win_rate: { win_rate: 0, last_month: 0, status: "down" }
         }
       };
       

@@ -4,14 +4,14 @@ import { AdminRoute, UserRoute } from '@/_components/PrivateRoute'
 
 export default function page() {
   return (
-    <div > 
-  
-  <AdminRoute>
-
-    <DashboardHome/>
-  </AdminRoute>
-
-    
+    <div >
+      <AdminRoute>
+        <DashboardHome />
+      </AdminRoute>
     </div>
   )
 }
+
+
+
+
