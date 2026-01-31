@@ -14,6 +14,7 @@ import DynamicPagination from "../reusable/DynamicPagination";
 import { RecentPredictionColumn } from "../columns/RecentPredictionsColumn";
 import { dashboardApi } from "@/services/dashboardApi";
 import type { DashboardPredictionsResponse, Prediction } from "@/services/dashboardApi";
+import EditPredictionModal from "./EditPredictionModal";
 
 interface StatCardProps {
   title: string;
@@ -45,6 +46,8 @@ export default function Prediction() {
     hasPrevPage: false
   });
   const [predictionsError, setPredictionsError] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedPrediction, setSelectedPrediction] = useState<Prediction | null>(null);
   
   // Dashboard stats state
   const [dashboardStats, setDashboardStats] = useState<DashboardPredictionsResponse["data"] | null>(null);
@@ -318,6 +321,17 @@ export default function Prediction() {
     }
   };
 
+    const handleEditClick = (prediction: Prediction) => {
+    setSelectedPrediction(prediction);
+    setIsEditModalOpen(true);
+  };
+
+  // Handle edit success
+  const handleEditSuccess = () => {
+    // Refetch predictions to get updated data
+    fetchPredictions(pagination.currentPage, pagination.itemsPerPage);
+  };
+
   return (
     <div>
       <div className="bg-[#0E121B] p-6 rounded-2xl">
@@ -436,7 +450,7 @@ export default function Prediction() {
           ) : predictions.length > 0 ? (
             <>
               <DynamicTable
-                columns={RecentPredictionColumn}
+                columns={RecentPredictionColumn(handleEditClick)}
                 data={predictions}
                 hasWrapperBorder={false}
                 headerStyles={{
@@ -490,6 +504,13 @@ export default function Prediction() {
         isOpen={isAddSidebarOpen}
         onClose={handleCloseAddSidebar}
         onSave={handleAddPrediction}
+      />
+
+       <EditPredictionModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        prediction={selectedPrediction}
+        onSuccess={handleEditSuccess}
       />
     </div>
   );

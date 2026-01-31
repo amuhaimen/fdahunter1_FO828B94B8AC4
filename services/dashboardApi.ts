@@ -102,6 +102,20 @@ export interface DashboardPredictionsResponse {
   data: DashboardPredictionsStats;
 }
 
+// =========================================================
+export interface UpdatePredictionRequest {
+  description?: string;
+  status?: string;
+  image?: File | string; // Can be File for upload or string URL
+}
+
+export interface UpdatePredictionResponse {
+  success: boolean;
+  message: string;
+  data: Prediction;
+}
+
+
 // ============ DASHBOARD API FUNCTIONS ============
 export const dashboardApi = {
   // Get dashboard statistics
@@ -231,4 +245,66 @@ export const dashboardApi = {
       throw errorResponse;
     }
   },
+
+
+
+
+  updatePrediction: async (id: string, data: UpdatePredictionRequest): Promise<UpdatePredictionResponse> => {
+  try {
+    // Create FormData for file upload
+    const formData = new FormData();
+    
+    if (data.description) {
+      formData.append('description', data.description);
+    }
+    
+    if (data.status) {
+      formData.append('status', data.status);
+    }
+    
+    if (data.image instanceof File) {
+      formData.append('image', data.image);
+    } else if (data.image && typeof data.image === 'string') {
+      formData.append('image', data.image);
+    }
+    
+    const response = await axiosClient.patch<UpdatePredictionResponse>(`/api/predictions/update/${id}`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    
+    return response.data;
+  } catch (error: any) {
+    console.log("Update Prediction API Error:", error);
+    
+    let errorMessage = "Failed to update prediction.";
+    let validStatuses: string[] = [];
+    
+    // Handle different error response structures
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+      
+      // Check if this is an invalid status error
+      if (error.response.data.validStatuses) {
+        errorMessage += ` Valid statuses are: ${error.response.data.validStatuses.join(', ')}`;
+        validStatuses = error.response.data.validStatuses;
+      }
+    } else if (error.response?.data?.error) {
+      errorMessage = error.response.data.error;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    // Create a custom error that includes the valid statuses
+    const customError = new Error(errorMessage) as any;
+    customError.validStatuses = validStatuses;
+    customError.isInvalidStatusError = validStatuses.length > 0;
+    
+    throw customError;
+  }
+},
 };

@@ -57,7 +57,7 @@ const CustomModal: React.FC<ModalProps> = ({
   return (
     <div
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/30 backdrop-blur-[3px] p-4"
+      className="fixed inset-0 z-200 flex items-center justify-center bg-black/30 backdrop-blur-[3px] p-4"
     >
       {/* Overlay */}
       <div

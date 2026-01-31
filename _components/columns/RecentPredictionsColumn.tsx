@@ -4,7 +4,7 @@ import PenIcon from "../icons/predictions/PenIcon";
 import TrashIcon from "../icons/predictions/TrashIcon";
 
 // Define the column configuration
-export const RecentPredictionColumn = [
+export const RecentPredictionColumn = (handleEditClick: (prediction: any) => void) => [
    {
     label: "Sports Type",
     width: "15%",
@@ -125,15 +125,14 @@ export const RecentPredictionColumn = [
       );
     },
   },
-  {
+ {
     label: "Action",
     width: "5%",
     accessor: "action",
     sortable: false,
     formatter: (value: any, row: any) => {
       const handleEdit = () => {
-        console.log("Edit clicked for row:", row.id);
-        // You can call an edit function here
+        handleEditClick(row);
       };
 
       const handleDelete = () => {
@@ -145,14 +144,14 @@ export const RecentPredictionColumn = [
         <div className="flex items-center gap-2">
           <button
             onClick={handleEdit}
-            className="p-1.5 bg-[#2F78EE] hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
+            className="p-1.5 bg-[#2F78EE] hover:bg-blue-600 rounded-lg transition-colors duration-200 cursor-pointer"
             title="Edit"
           >
             <PenIcon/>
           </button>
           <button
             onClick={handleDelete}
-            className="p-1.5 bg-[#E03137]  hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
+            className="p-1.5 bg-[#E03137] hover:bg-red-600 rounded-lg transition-colors duration-200 cursor-pointer"
             title="Delete"
           >
             <TrashIcon/>

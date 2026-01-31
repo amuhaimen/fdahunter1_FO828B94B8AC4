@@ -114,6 +114,7 @@ const AddPredictionSidebar: React.FC<AddTestSidebarProps> = ({
               onChange={setSelectedCategories}
               placeholder="Select categories"
               className="  flex-1  w-full mt-2  "
+              
             />
 
             </div>
