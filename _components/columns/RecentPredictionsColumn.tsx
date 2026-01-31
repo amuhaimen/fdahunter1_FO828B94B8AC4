@@ -5,25 +5,27 @@ import TrashIcon from "../icons/predictions/TrashIcon";
 
 // Define the column configuration
 export const RecentPredictionColumn = [
-  {
+   {
     label: "Sports Type",
     width: "15%",
-    accessor: "sportsType",
+    accessor: "category",  // Changed from "sportsType" to "category"
     sortable: true,
     formatter: (value: string, row: any) => {
       return (
         <div className="flex items-center gap-2">
           {row?.image && (
             <div className="w-13 h-8 flex items-center justify-center bg-[#323B49] rounded-lg">
-              {/* <img 
+              <img 
                 src={row.image} 
                 alt="sports img"
-                className="w-5 h-5 object-contain"
+                className="w-full h-full object-cover rounded-lg"
                 onError={(e) => {
+                  // Hide image container if image fails to load
                   const target = e.target as HTMLImageElement;
-                  target.src = "/images/default-sports-icon.svg";
+                  target.style.display = 'none';
+                  target.parentElement!.innerHTML = '';
                 }}
-              /> */}
+              />
             </div>
           )}
           <span className="text-white text-sm font-medium">
@@ -88,8 +90,8 @@ export const RecentPredictionColumn = [
   },
   {
     label: "Created",
-    width: "15%",
-    accessor: "createdDate",
+    width: "12%",
+    accessor: "createdAt",  // Changed from "createdDate" to "createdAt"
     sortable: true,
     formatter: (value: string) => {
       const date = new Date(value);
@@ -100,71 +102,32 @@ export const RecentPredictionColumn = [
       
       return (
         <div className="flex flex-col">
-          <span className={`text-sm text-white`}>
+          <span className="text-sm text-white">
             {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
-          {isRecent && (
-            <span className="text-xs text-green-600 font-medium">New</span>
-          )}
-        </div>
-      );
-    },
-  },
-  {
-    label: "Team Name",
-    width: "20%",
-    accessor: "teamName",
-    sortable: true,
-    formatter: (value: string) => {
-      return (
-        <div className="text-sm text-white">
-          {value}
+        
         </div>
       );
     },
   },
  
-  {
-    label: "Win Rate",
-    width: "12%",
-    accessor: "winRate",
+ 
+   {
+    label: "Notes",
+    width: "23%",
+    accessor: "description",  // Changed from "teamName" to "description"
     sortable: true,
-    formatter: (value: number) => {
-      let colorClass = "text-white";
-      
-      if (value >= 80) {
-        colorClass = "text-[#00F474]";
-      } else if (value >= 60) {
-        colorClass = "text-blue-400";
-      } else if (value >= 40) {
-        colorClass = "text-[#E6004C]";
-      }
-      
+    formatter: (value: string) => {
       return (
-        <div className="flex items-center">
-          <span className={`text-sm font-bold ${colorClass}`}>
-            {value}%
-          </span>
+        <div className="text-sm text-white    " title={value}>
+          {value}
         </div>
       );
     },
   },
   {
-    label: "Signal",
-    width: "14%",
-    accessor: "signal",
-    sortable: true,
-    formatter: (value: string) => {
-      return (
-        <span className={`text-sm text-white`}>
-          {value}
-        </span>
-      );
-    },
-  },
-  {
     label: "Action",
-    width: "9%",
+    width: "5%",
     accessor: "action",
     sortable: false,
     formatter: (value: any, row: any) => {

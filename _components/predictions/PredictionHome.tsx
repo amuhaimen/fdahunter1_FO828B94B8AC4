@@ -12,9 +12,8 @@ import AddPredictionSidebar from "./AddPredictionSidebar";
 import DynamicTable from "../reusable/DynamicTable";
 import DynamicPagination from "../reusable/DynamicPagination";
 import { RecentPredictionColumn } from "../columns/RecentPredictionsColumn";
-import recentData from "../data/recentData.json";
-import { dashboardApi, DashboardPredictionsResponse } from "@/services/dashboardApi";
- 
+import { dashboardApi } from "@/services/dashboardApi";
+import type { DashboardPredictionsResponse, Prediction } from "@/services/dashboardApi";
 
 interface StatCardProps {
   title: string;
@@ -25,34 +24,50 @@ interface StatCardProps {
   isLoading?: boolean;
 }
 
+interface CategoryOption {
+  value: string;
+  label: string;
+}
+
 export default function Prediction() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categories, setSelectedCategories] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [isAddSidebarOpen, setIsAddSidebarOpen] = useState(false);
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [predictionsLoading, setPredictionsLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    totalItems: 0,
+    totalPages: 0,
+    currentPage: 1,
+    itemsPerPage: 10,
+    hasNextPage: false,
+    hasPrevPage: false
+  });
+  const [predictionsError, setPredictionsError] = useState<string | null>(null);
   
   // Dashboard stats state
   const [dashboardStats, setDashboardStats] = useState<DashboardPredictionsResponse["data"] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const categoriesOption = [
-    { value: "sports", label: "Sports" },
-    { value: "stocks", label: "Stocks" },
-    { value: "casino", label: "Casino" },
-  ];
+  // Category options from API
+  const [categoriesOption, setCategoriesOption] = useState<CategoryOption[]>([
+    { value: "Casino", label: "Casino" },
+    { value: "Sports", label: "Sports" },
+    { value: "Stocks", label: "Stocks" },
+    { value: "Crypto", label: "Crypto" },
+  ]);
 
+  // Status options based on API response
   const statusOptions = [
-    { value: "active", label: "Active" },
+    { value: "win", label: "Win" },
+    { value: "lose", label: "Lose" },
     { value: "pending", label: "Pending" },
-    { value: "completed", label: "Completed" },
+    { value: "cancel", label: "Cancel" },
   ];
 
-  // Fetch dashboard predictions data
+  // Fetch dashboard predictions stats data
   useEffect(() => {
     const fetchDashboardStats = async () => {
       setIsLoading(true);
@@ -87,6 +102,108 @@ export default function Prediction() {
 
     fetchDashboardStats();
   }, []);
+
+  // Fetch predictions data with proper API filtering
+  const fetchPredictions = async (page: number = 1, limit: number = 10) => {
+    try {
+      setPredictionsLoading(true);
+      const response = await dashboardApi.getAllPredictions({
+        page,
+        limit,
+        search: searchTerm || undefined,
+        status: statusFilter || undefined,
+        category: categories || undefined,
+      });
+      
+      if (response.success) {
+        setPredictions(response.data);
+        setPagination(response.pagination);
+        setPredictionsError(null);
+      } else {
+        setPredictionsError(response.message);
+      }
+    } catch (err: any) {
+      console.error("Error fetching predictions:", err);
+      
+      // Handle invalid category error specifically
+      if (err.isInvalidCategoryError && err.validCategories) {
+        // Update categories dropdown with valid categories from API
+        const validCategories = err.validCategories.map((cat: string) => ({
+          value: cat,
+          label: cat
+        }));
+        setCategoriesOption(validCategories);
+        
+        // Reset category filter if it's invalid
+        if (categories && !err.validCategories.includes(categories)) {
+          setSelectedCategories("");
+        }
+        
+        setPredictionsError(err.message);
+      } else {
+        setPredictionsError(err.message || "Failed to load predictions");
+      }
+      
+      // Clear predictions on error
+      setPredictions([]);
+      setPagination({
+        totalItems: 0,
+        totalPages: 0,
+        currentPage: 1,
+        itemsPerPage: limit,
+        hasNextPage: false,
+        hasPrevPage: false
+      });
+    } finally {
+      setPredictionsLoading(false);
+    }
+  };
+
+  // Initial fetch of predictions
+  useEffect(() => {
+    fetchPredictions(1, 10);
+  }, []);
+
+  // Debounced search - refetch when search term changes
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchPredictions(1, pagination.itemsPerPage);
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
+
+  // Refetch when category filter changes
+  useEffect(() => {
+    if (categories !== undefined) {
+      fetchPredictions(1, pagination.itemsPerPage);
+    }
+  }, [categories]);
+
+  // Refetch when status filter changes
+  useEffect(() => {
+    if (statusFilter !== undefined) {
+      fetchPredictions(1, pagination.itemsPerPage);
+    }
+  }, [statusFilter]);
+
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    fetchPredictions(newPage, pagination.itemsPerPage);
+  };
+
+  // Handle items per page change
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    fetchPredictions(1, newItemsPerPage);
+  };
+
+  // Clear all filters
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setSelectedCategories("");
+    setStatusFilter("");
+    fetchPredictions(1, pagination.itemsPerPage);
+  };
 
   // Format percentage
   const formatPercentage = (value: number) => {
@@ -171,71 +288,18 @@ export default function Prediction() {
     ];
   }, [dashboardStats, isLoading]);
 
-  // Filter data based on search term and filters
-  const filteredData = useMemo(() => {
-    let filtered = [...recentData];
-    
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(item => 
-        item.teamName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.sportsType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.status.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    // Apply category filter
-    if (categories) {
-      filtered = filtered.filter(item => 
-        item.sportsType.toLowerCase() === categories.toLowerCase()
-      );
-    }
-    
-    // Apply status filter
-    if (statusFilter) {
-      filtered = filtered.filter(item => 
-        item.status.toLowerCase() === statusFilter.toLowerCase()
-      );
-    }
-    
-    return filtered;
-  }, [searchTerm, categories, statusFilter]);
-
-  // Calculate pagination values
-  const totalItems = filteredData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  
-  // Get data for current page
-  const getCurrentPageData = () => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredData.slice(startIndex, endIndex);
-  };
-
-  // Check if there are next/previous pages
-  const hasNextPage = currentPage < totalPages;
-  const hasPrevPage = currentPage > 1;
-
   const handleCloseAddSidebar = () => {
     setIsAddSidebarOpen(false);
   };
 
   const handleAddPrediction = (newTestData: unknown) => {
     console.log("Adding new test:", newTestData);
-    // Here you might want to refetch the dashboard stats after adding a new prediction
+    // Refetch predictions after adding a new one
+    fetchPredictions(pagination.currentPage, pagination.itemsPerPage);
   };
 
   const handleOpenAddSidebar = () => {
     setIsAddSidebarOpen(true);
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handleItemsPerPageChange = (newItemsPerPage: number) => {
-    setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1);
   };
 
   // Refresh dashboard stats
@@ -325,10 +389,7 @@ export default function Prediction() {
           <SearchBar
             placeholder="Search Picks"
             value={searchTerm}
-            onChange={(value) => {
-              setSearchTerm(value);
-              setCurrentPage(1);
-            }}
+            onChange={setSearchTerm}
             className="flex-1"
           />
           <CustomDropdown
@@ -345,14 +406,38 @@ export default function Prediction() {
             placeholder="Select status"
             className="flex-1 w-full"
           />
+          {(searchTerm || categories || statusFilter) && (
+            <button
+              onClick={handleClearFilters}
+              className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition"
+            >
+              Clear Filters
+            </button>
+          )}
         </div>
         
         <div className="mt-6">
-          {filteredData.length > 0 ? (
+          {predictionsError && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <p className="text-red-400 text-sm">{predictionsError}</p>
+              {predictionsError.includes("Invalid category") && (
+                <p className="text-yellow-400 text-sm mt-1">
+                  Available categories: {categoriesOption.map(c => c.label).join(', ')}
+                </p>
+              )}
+            </div>
+          )}
+          
+          {predictionsLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+              <p className="text-white mt-4">Loading predictions...</p>
+            </div>
+          ) : predictions.length > 0 ? (
             <>
               <DynamicTable
                 columns={RecentPredictionColumn}
-                data={getCurrentPageData()} // Pass only current page data
+                data={predictions}
                 hasWrapperBorder={false}
                 headerStyles={{
                   backgroundColor: "#323B49",
@@ -366,25 +451,36 @@ export default function Prediction() {
                 cellBorderColor="#323B49"
               />
               
-              <div className=" ">
+              {/* Pagination Component */}
+              <div className="mt-4">
                 <DynamicPagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  hasNextPage={hasNextPage}
-                  hasPrevPage={hasPrevPage}
+                  currentPage={pagination.currentPage}
+                  totalPages={pagination.totalPages}
+                  hasNextPage={pagination.hasNextPage}
+                  hasPrevPage={pagination.hasPrevPage}
                   onPageChange={handlePageChange}
-                  totalItems={totalItems}
-                  itemsPerPage={itemsPerPage}
+                  totalItems={pagination.totalItems}
+                  itemsPerPage={pagination.itemsPerPage}
                   onItemsPerPageChange={handleItemsPerPageChange}
-                  itemsPerPageOptions={[2, 5, 10, 15, 20, 25, 30, 50]}
+                  itemsPerPageOptions={[5, 10, 15, 20, 25, 30, 50]}
                   showItemsPerPage={true}
-                  show={totalItems > 0}
+                  show={pagination.totalItems > 0}
                 />
               </div>
             </>
           ) : (
             <div className="text-center py-8">
-              <p className="text-[#687588]">No predictions found</p>
+              <p className="text-[#687588]">
+                {predictionsError ? "Error loading predictions" : "No predictions found"}
+              </p>
+              {(searchTerm || categories || statusFilter) && (
+                <button
+                  onClick={handleClearFilters}
+                  className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                  Clear filters to see all predictions
+                </button>
+              )}
             </div>
           )}
         </div>

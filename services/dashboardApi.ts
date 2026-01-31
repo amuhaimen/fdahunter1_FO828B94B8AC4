@@ -24,8 +24,6 @@ export interface DashboardStats {
   };
 }
 
-
-
 export interface DashboardResponse {
   success: boolean;
   message: string;
@@ -57,6 +55,13 @@ export interface PredictionsResponse {
   message: string;
   data: Prediction[];
   pagination: PaginationInfo;
+}
+
+// Add interface for error response with valid categories
+export interface PredictionsErrorResponse {
+  success: false;
+  message: string;
+  validCategories?: string[];
 }
 
 export interface PredictionsParams {
@@ -150,17 +155,30 @@ export const dashboardApi = {
       console.log("Predictions API Error:", error);
       
       let errorMessage = "Failed to fetch predictions.";
+      let validCategories: string[] = [];
       
       // Handle different error response structures
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
+        
+        // Check if this is an invalid category error
+        if (error.response.data.validCategories) {
+          // Add valid categories to the error message for better UX
+          errorMessage += ` Valid categories are: ${error.response.data.validCategories.join(', ')}`;
+          validCategories = error.response.data.validCategories;
+        }
       } else if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
       } else if (error.message) {
         errorMessage = error.message;
       }
       
-      // Return error response
+      // Create a custom error that includes the valid categories
+      const customError = new Error(errorMessage) as any;
+      customError.validCategories = validCategories;
+      customError.isInvalidCategoryError = validCategories.length > 0;
+      
+      // Return error response with custom error
       const errorResponse: PredictionsResponse = {
         success: false,
         message: errorMessage,
@@ -175,12 +193,12 @@ export const dashboardApi = {
         }
       };
       
-      throw errorResponse;
+      // Throw the custom error with additional info
+      throw customError;
     }
   },
 
-
-    getDashboardPredictionstats: async (): Promise<DashboardPredictionsResponse> => {
+  getDashboardPredictionstats: async (): Promise<DashboardPredictionsResponse> => {
     try {
       const response = await axiosClient.get<DashboardPredictionsResponse>("/api/dashboard/predictions");
       return response.data;
@@ -213,10 +231,4 @@ export const dashboardApi = {
       throw errorResponse;
     }
   },
-
-
 };
-
-
- 
-
