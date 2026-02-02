@@ -1,33 +1,46 @@
 import React from "react";
-import { TrendingUp, TrendingDown, Minus, Edit, Trash2 } from "lucide-react";
 import PenIcon from "../icons/predictions/PenIcon";
 import TrashIcon from "../icons/predictions/TrashIcon";
 
 // Define the column configuration
 export const RecentPredictionColumn = (handleEditClick: (prediction: any) => void) => [
-   {
+  {
     label: "Sports Type",
     width: "15%",
-    accessor: "category",  // Changed from "sportsType" to "category"
+    accessor: "category",
     sortable: true,
     formatter: (value: string, row: any) => {
+      const hasImage = row?.image && row.image.trim() !== "";
+      
       return (
         <div className="flex items-center gap-2">
-          {row?.image && (
-            <div className="w-13 h-8 flex items-center justify-center bg-[#323B49] rounded-lg">
+          <div className="w-13 h-8 flex items-center justify-center bg-[#323B49] rounded-lg overflow-hidden">
+            {hasImage ? (
               <img 
                 src={row.image} 
                 alt="sports img"
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-cover"
                 onError={(e) => {
                   // Hide image container if image fails to load
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
-                  target.parentElement!.innerHTML = '';
+                  // Show fallback div
+                  const container = target.parentElement;
+                  if (container) {
+                    container.innerHTML = `
+                      <div class="w-full h-full flex items-center justify-center bg-[#323B49] rounded-lg border border-[#4B5563]">
+                      
+                      </div>
+                    `;
+                  }
                 }}
               />
-            </div>
-          )}
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-[#323B49] rounded-lg border border-[#4B5563]">
+                {/* <span className="text-gray-400 text-xs">No Image</span> */}
+              </div>
+            )}
+          </div>
           <span className="text-white text-sm font-medium">
             {value}
           </span>
@@ -35,7 +48,7 @@ export const RecentPredictionColumn = (handleEditClick: (prediction: any) => voi
       );
     },
   },
-   {
+  {
     label: "Status",
     width: "15%",
     accessor: "status",
@@ -91,7 +104,7 @@ export const RecentPredictionColumn = (handleEditClick: (prediction: any) => voi
   {
     label: "Created",
     width: "12%",
-    accessor: "createdAt",  // Changed from "createdDate" to "createdAt"
+    accessor: "createdAt",
     sortable: true,
     formatter: (value: string) => {
       const date = new Date(value);
@@ -105,27 +118,24 @@ export const RecentPredictionColumn = (handleEditClick: (prediction: any) => voi
           <span className="text-sm text-white">
             {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
-        
         </div>
       );
     },
   },
- 
- 
-   {
+  {
     label: "Notes",
     width: "23%",
-    accessor: "description",  // Changed from "teamName" to "description"
+    accessor: "description",
     sortable: true,
     formatter: (value: string) => {
       return (
-        <div className="text-sm text-white    " title={value}>
+        <div className="text-sm text-white" title={value}>
           {value}
         </div>
       );
     },
   },
- {
+  {
     label: "Action",
     width: "5%",
     accessor: "action",

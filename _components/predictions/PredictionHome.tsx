@@ -15,6 +15,7 @@ import { RecentPredictionColumn } from "../columns/RecentPredictionsColumn";
 import { dashboardApi } from "@/services/dashboardApi";
 import type { DashboardPredictionsResponse, Prediction } from "@/services/dashboardApi";
 import EditPredictionModal from "./EditPredictionModal";
+import toast from "react-hot-toast";
 
 interface StatCardProps {
   title: string;
@@ -295,10 +296,12 @@ export default function Prediction() {
     setIsAddSidebarOpen(false);
   };
 
-  const handleAddPrediction = (newTestData: unknown) => {
-    console.log("Adding new test:", newTestData);
+  // This function is called when prediction is created successfully
+  const handlePredictionCreated = () => {
     // Refetch predictions after adding a new one
     fetchPredictions(pagination.currentPage, pagination.itemsPerPage);
+    // Also refresh dashboard stats
+    handleRefreshStats();
   };
 
   const handleOpenAddSidebar = () => {
@@ -313,15 +316,33 @@ export default function Prediction() {
       if (response.success) {
         setDashboardStats(response.data);
         setError(null);
+        // toast.success("Dashboard stats refreshed", {
+        //   duration: 3000,
+        //   position: "top-right",
+        //   style: {
+        //     background: "#1A1F2E",
+        //     color: "#fff",
+        //     border: "1px solid #00F474",
+        //   },
+        // });
       }
     } catch (err: any) {
       setError(err.message || "Failed to refresh dashboard statistics");
+      toast.error("Failed to refresh stats", {
+        duration: 4000,
+        position: "top-right",
+        style: {
+          background: "#1A1F2E",
+          color: "#fff",
+          border: "1px solid #E93544",
+        },
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-    const handleEditClick = (prediction: Prediction) => {
+  const handleEditClick = (prediction: Prediction) => {
     setSelectedPrediction(prediction);
     setIsEditModalOpen(true);
   };
@@ -330,6 +351,8 @@ export default function Prediction() {
   const handleEditSuccess = () => {
     // Refetch predictions to get updated data
     fetchPredictions(pagination.currentPage, pagination.itemsPerPage);
+    // Refresh dashboard stats
+    handleRefreshStats();
   };
 
   return (
@@ -500,13 +523,14 @@ export default function Prediction() {
         </div>
       </div>
 
+      {/* Add this onSuccess prop to trigger refresh after prediction creation */}
       <AddPredictionSidebar
         isOpen={isAddSidebarOpen}
         onClose={handleCloseAddSidebar}
-        onSave={handleAddPrediction}
+        onSuccess={handlePredictionCreated}   
       />
 
-       <EditPredictionModal
+      <EditPredictionModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         prediction={selectedPrediction}

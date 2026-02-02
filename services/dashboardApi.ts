@@ -103,6 +103,18 @@ export interface DashboardPredictionsResponse {
 }
 
 // =========================================================
+export interface CreatePredictionRequest {
+  category: string;
+  description: string;
+  image?: File; // Optional, only for Casino category
+}
+
+export interface CreatePredictionResponse {
+  success: boolean;
+  message: string;
+  data: Prediction;
+}
+
 export interface UpdatePredictionRequest {
   description?: string;
   status?: string;
@@ -115,6 +127,41 @@ export interface UpdatePredictionResponse {
   data: Prediction;
 }
 
+// ============ SUBSCRIPTION TYPES ============
+export interface SubscriptionPackage {
+  id: string;
+  name: string;
+  title: string;
+  description: string[];
+  amount: number;
+  currency: string;
+  duration: string;
+  stripeProductId: string;
+  stripePriceId: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSubscriptionPackageRequest {
+  name: string;
+  title: string;
+  description: string; // Will be split by commas to create array
+  amount: number;
+  duration: string; // Duration in days as string
+}
+
+export interface CreateSubscriptionPackageResponse {
+  success: boolean;
+  message: string;
+  data: SubscriptionPackage;
+}
+
+export interface GetSubscriptionPackagesResponse {
+  success: boolean;
+  message: string;
+  data: SubscriptionPackage[];
+}
 
 // ============ DASHBOARD API FUNCTIONS ============
 export const dashboardApi = {
@@ -246,65 +293,230 @@ export const dashboardApi = {
     }
   },
 
-
-
+  // Create new prediction
+  createPrediction: async (data: CreatePredictionRequest): Promise<CreatePredictionResponse> => {
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      
+      // Required fields
+      formData.append('category', data.category);
+      formData.append('description', data.description);
+      
+      // Only append image if provided (for Casino category)
+      if (data.image instanceof File) {
+        formData.append('image', data.image);
+      } else if (data.image && typeof data.image === 'string') {
+        // If it's a string (base64 or URL), append as string
+        formData.append('image', data.image);
+      }
+      
+      const response = await axiosClient.post<CreatePredictionResponse>(
+        "/api/predictions/create",
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      
+      return response.data;
+    } catch (error: any) {
+      console.log("Create Prediction API Error:", error);
+      
+      let errorMessage = "Failed to create prediction.";
+      let validCategories: string[] = [];
+      
+      // Handle different error response structures
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+        
+        // Check if this is an invalid category error
+        if (error.response.data.validCategories) {
+          errorMessage += ` Valid categories are: ${error.response.data.validCategories.join(', ')}`;
+          validCategories = error.response.data.validCategories;
+        }
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      // Create a custom error that includes the valid categories
+      const customError = new Error(errorMessage) as any;
+      customError.validCategories = validCategories;
+      customError.isInvalidCategoryError = validCategories.length > 0;
+      
+      // Return structured error response
+      const errorResponse: CreatePredictionResponse = {
+        success: false,
+        message: errorMessage,
+        data: {
+          id: "",
+          category: data.category,
+          status: "pending",
+          description: data.description,
+          image: "",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      };
+      
+      throw customError;
+    }
+  },
 
   updatePrediction: async (id: string, data: UpdatePredictionRequest): Promise<UpdatePredictionResponse> => {
-  try {
-    // Create FormData for file upload
-    const formData = new FormData();
-    
-    if (data.description) {
-      formData.append('description', data.description);
-    }
-    
-    if (data.status) {
-      formData.append('status', data.status);
-    }
-    
-    if (data.image instanceof File) {
-      formData.append('image', data.image);
-    } else if (data.image && typeof data.image === 'string') {
-      formData.append('image', data.image);
-    }
-    
-    const response = await axiosClient.patch<UpdatePredictionResponse>(`/api/predictions/update/${id}`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
-    
-    return response.data;
-  } catch (error: any) {
-    console.log("Update Prediction API Error:", error);
-    
-    let errorMessage = "Failed to update prediction.";
-    let validStatuses: string[] = [];
-    
-    // Handle different error response structures
-    if (error.response?.data?.message) {
-      errorMessage = error.response.data.message;
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
       
-      // Check if this is an invalid status error
-      if (error.response.data.validStatuses) {
-        errorMessage += ` Valid statuses are: ${error.response.data.validStatuses.join(', ')}`;
-        validStatuses = error.response.data.validStatuses;
+      if (data.description) {
+        formData.append('description', data.description);
       }
-    } else if (error.response?.data?.error) {
-      errorMessage = error.response.data.error;
-    } else if (error.message) {
-      errorMessage = error.message;
+      
+      if (data.status) {
+        formData.append('status', data.status);
+      }
+      
+      if (data.image instanceof File) {
+        formData.append('image', data.image);
+      } else if (data.image && typeof data.image === 'string') {
+        formData.append('image', data.image);
+      }
+      
+      const response = await axiosClient.patch<UpdatePredictionResponse>(
+        `/api/predictions/update/${id}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      
+      return response.data;
+    } catch (error: any) {
+      console.log("Update Prediction API Error:", error);
+      
+      let errorMessage = "Failed to update prediction.";
+      let validStatuses: string[] = [];
+      
+      // Handle different error response structures
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+        
+        // Check if this is an invalid status error
+        if (error.response.data.validStatuses) {
+          errorMessage += ` Valid statuses are: ${error.response.data.validStatuses.join(', ')}`;
+          validStatuses = error.response.data.validStatuses;
+        }
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      // Create a custom error that includes the valid statuses
+      const customError = new Error(errorMessage) as any;
+      customError.validStatuses = validStatuses;
+      customError.isInvalidStatusError = validStatuses.length > 0;
+      
+      throw customError;
     }
-    
-    // Create a custom error that includes the valid statuses
-    const customError = new Error(errorMessage) as any;
-    customError.validStatuses = validStatuses;
-    customError.isInvalidStatusError = validStatuses.length > 0;
-    
-    throw customError;
-  }
-},
+  },
+
+  // ============ SUBSCRIPTION API FUNCTIONS ============
+  
+  // Create new subscription package
+  createSubscriptionPackage: async (data: CreateSubscriptionPackageRequest): Promise<CreateSubscriptionPackageResponse> => {
+    try {
+      const response = await axiosClient.post<CreateSubscriptionPackageResponse>(
+        "/api/subscription/package",
+        data,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      return response.data;
+    } catch (error: any) {
+      console.log("Create Subscription Package API Error:", error);
+      
+      let errorMessage = "Failed to create subscription package.";
+      
+      // Handle different error response structures
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      // Create a custom error
+      const customError = new Error(errorMessage) as any;
+      
+      // Return structured error response
+      const errorResponse: CreateSubscriptionPackageResponse = {
+        success: false,
+        message: errorMessage,
+        data: {
+          id: "",
+          name: data.name,
+          title: data.title,
+          description: [data.description],
+          amount: data.amount,
+          currency: "usd",
+          duration: data.duration,
+          stripeProductId: "",
+          stripePriceId: "",
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      };
+      
+      throw customError;
+    }
+  },
+
+  // Get all subscription packages
+  getSubscriptionPackages: async (): Promise<GetSubscriptionPackagesResponse> => {
+    try {
+      const response = await axiosClient.get<GetSubscriptionPackagesResponse>("/api/subscription/package");
+      return response.data;
+    } catch (error: any) {
+      console.log("Get Subscription Packages API Error:", error);
+      
+      let errorMessage = "Failed to fetch subscription packages.";
+      
+      // Handle different error response structures
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      // Create a custom error
+      const customError = new Error(errorMessage) as any;
+      
+      // Return structured error response
+      const errorResponse: GetSubscriptionPackagesResponse = {
+        success: false,
+        message: errorMessage,
+        data: []
+      };
+      
+      throw customError;
+    }
+  },
+ 
+
+  
 };

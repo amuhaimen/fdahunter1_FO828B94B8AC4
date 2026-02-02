@@ -1,4 +1,4 @@
-// components/CustomDropdown.tsx
+// components/CustomDropdown.tsx - FIXED VERSION
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -14,6 +14,7 @@ interface CustomDropdownProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  portalTarget?: HTMLElement | null; // Optional portal target
 }
 
 export default function CustomDropdown({
@@ -22,20 +23,46 @@ export default function CustomDropdown({
   onChange,
   placeholder = 'Select...',
   className = '',
+  portalTarget,
 }: CustomDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [dropdownPosition, setDropdownPosition] = useState({ 
+    top: 0, 
+    left: 0, 
+    width: 0,
+    position: 'absolute' as 'absolute' | 'fixed' 
+  });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Calculate dropdown position
   const updateDropdownPosition = () => {
-    if (triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
+    if (!triggerRef.current) return;
+
+    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    
+    // Check if we should use fixed positioning (for sidebar/modals)
+    const shouldUseFixed = portalTarget || 
+      containerRef.current?.closest('[data-portal-container]') || 
+      triggerRef.current.closest('[data-portal-container]');
+
+    if (shouldUseFixed) {
+      // Fixed positioning relative to viewport
       setDropdownPosition({
-        top: rect.bottom + window.scrollY + 8, // 8px margin from trigger
-        left: rect.left + window.scrollX,
-        width: rect.width,
+        top: triggerRect.bottom,
+        left: triggerRect.left,
+        width: triggerRect.width,
+        position: 'fixed'
+      });
+    } else {
+      // Absolute positioning relative to container
+      setDropdownPosition({
+        top: triggerRect.bottom - (containerRect?.top || 0),
+        left: triggerRect.left - (containerRect?.left || 0),
+        width: triggerRect.width,
+        position: 'absolute'
       });
     }
   };
@@ -45,35 +72,41 @@ export default function CustomDropdown({
     const newIsOpen = !isOpen;
     setIsOpen(newIsOpen);
     if (newIsOpen) {
-      setTimeout(updateDropdownPosition, 0); // Update position after state change
+      // Use requestAnimationFrame to ensure DOM updates
+      requestAnimationFrame(() => {
+        updateDropdownPosition();
+      });
     }
   };
 
-  // Close dropdown when clicking outside - FIXED VERSION
+  // Close dropdown when clicking outside - IMPROVED VERSION
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Check if click is outside both trigger and dropdown
-      const isTriggerClick = triggerRef.current?.contains(event.target as Node);
-      const isDropdownClick = dropdownRef.current?.contains(event.target as Node);
+      const target = event.target as Node;
       
-      if (!isTriggerClick && !isDropdownClick) {
+      // Check if click is inside dropdown or trigger
+      const isInsideDropdown = dropdownRef.current?.contains(target);
+      const isInsideTrigger = triggerRef.current?.contains(target);
+      
+      if (!isInsideDropdown && !isInsideTrigger && isOpen) {
         setIsOpen(false);
       }
     };
 
-    // Use capture phase to ensure we catch all clicks
+    // Use capture phase
     document.addEventListener('mousedown', handleClickOutside, true);
     
     return () => {
       document.removeEventListener('mousedown', handleClickOutside, true);
     };
-  }, []);
+  }, [isOpen]);
 
-  // Also close on escape key press
+  // Close on escape key press
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && isOpen) {
         setIsOpen(false);
+        triggerRef.current?.focus();
       }
     };
 
@@ -81,35 +114,92 @@ export default function CustomDropdown({
     return () => document.removeEventListener('keydown', handleEscapeKey);
   }, [isOpen]);
 
-  // Update position on window resize/scroll
+  // Update position on window resize/scroll and when dropdown opens
   useEffect(() => {
-    if (isOpen) {
-      const handleResize = () => updateDropdownPosition();
-      const handleScroll = () => updateDropdownPosition();
-      
-      window.addEventListener('resize', handleResize);
-      window.addEventListener('scroll', handleScroll, true);
-      
-      return () => {
-        window.removeEventListener('resize', handleResize);
-        window.removeEventListener('scroll', handleScroll, true);
-      };
-    }
+    if (!isOpen) return;
+
+    updateDropdownPosition();
+    
+    const handleResize = () => updateDropdownPosition();
+    const handleScroll = () => updateDropdownPosition();
+    
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
   }, [isOpen]);
 
-  // Focus trap for accessibility
+  // Focus management for accessibility
   useEffect(() => {
     if (isOpen && dropdownRef.current) {
       // Focus first option when dropdown opens
-      const firstButton = dropdownRef.current.querySelector('button');
+      const firstButton = dropdownRef.current.querySelector('button') as HTMLButtonElement;
       firstButton?.focus();
     }
   }, [isOpen]);
 
   const selectedOption = options.find(option => option.value === value);
 
+  // Create dropdown content
+  const dropdownContent = isOpen ? (
+    <div
+      ref={dropdownRef}
+      className={`z-50 bg-[#0e121b] border border-white/10 
+                 rounded-lg shadow-lg backdrop-blur-sm overflow-hidden
+                 ${dropdownPosition.position === 'fixed' ? 'fixed' : 'absolute'}`}
+      style={{
+        top: dropdownPosition.position === 'fixed' 
+          ? `${dropdownPosition.top}px` 
+          : `${dropdownPosition.top}px`,
+        left: dropdownPosition.position === 'fixed'
+          ? `${dropdownPosition.left}px`
+          : `${dropdownPosition.left}px`,
+        width: `${dropdownPosition.width}px`,
+        maxHeight: '300px',
+        overflowY: 'auto',
+      }}
+      role="listbox"
+      aria-labelledby="dropdown-label"
+    >
+      <div className="py-1">
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            className={`w-full px-4 py-3 text-left transition-colors duration-150
+                      hover:bg-white/10 active:bg-white/15 focus:bg-white/10 focus:outline-none
+                      ${option.value === value 
+                        ? 'bg-white/20 text-white font-medium' 
+                        : 'text-white/90'
+                      }`}
+            onClick={() => {
+              onChange(option.value);
+              setIsOpen(false);
+              triggerRef.current?.focus();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                onChange(option.value);
+                setIsOpen(false);
+                triggerRef.current?.focus();
+              }
+            }}
+            role="option"
+            aria-selected={option.value === value}
+            tabIndex={0}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  ) : null;
+
   return (
-    <div className={`relative ${className}`}>
+    <div ref={containerRef} className={`relative ${className}`} data-dropdown-container>
       {/* Dropdown Trigger Button */}
       <button
         ref={triggerRef}
@@ -121,6 +211,7 @@ export default function CustomDropdown({
         onClick={toggleDropdown}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
+        id="dropdown-label"
       >
         <div className="flex justify-between items-center">
           <span className={`${selectedOption ? 'text-white text-sm' : 'text-white text-sm'}  `}>
@@ -138,48 +229,8 @@ export default function CustomDropdown({
         </div>
       </button>
 
-      {/* Floating Dropdown Menu */}
-      {isOpen && (
-        <div
-          ref={dropdownRef}
-          className="fixed z-[9999] bg-[#0e121b] border border-white/10 
-                   rounded-lg shadow-lg backdrop-blur-sm overflow-hidden"
-          style={{
-            top: `${dropdownPosition.top}px`,
-            left: `${dropdownPosition.left}px`,
-            width: `${dropdownPosition.width}px`,
-            maxHeight: '300px',
-            overflowY: 'auto',
-          }}
-          role="listbox"
-          aria-labelledby="dropdown-label"
-        >
-          <div className="py-1">
-            {options.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={`w-full px-4 py-3 text-left transition-colors duration-150
-                          hover:bg-white/10 active:bg-white/15 focus:bg-white/10 focus:outline-none
-                          ${option.value === value 
-                            ? 'bg-white/20 text-white font-medium' 
-                            : 'text-white/90'
-                          }`}
-                onClick={() => {
-                  onChange(option.value);
-                  setIsOpen(false);
-                  triggerRef.current?.focus(); // Return focus to trigger
-                }}
-                role="option"
-                aria-selected={option.value === value}
-                tabIndex={0}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Render dropdown content */}
+      {dropdownContent}
     </div>
   );
 }
