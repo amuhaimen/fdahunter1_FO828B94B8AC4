@@ -157,10 +157,55 @@ export interface CreateSubscriptionPackageResponse {
   data: SubscriptionPackage;
 }
 
-export interface GetSubscriptionPackagesResponse {
+export interface GetSubscriptionPackageResponse {
   success: boolean;
   message: string;
-  data: SubscriptionPackage[];
+  data: SubscriptionPackage;
+}
+// ======================== promo code types ========================
+
+// Add these interfaces to your dashboardApi.ts file
+
+// ============ PROMO CODE TYPES ============
+export interface PromoCode {
+  id: string;
+  code: string;
+  discount: number;
+  maxUses: number;
+  usedCount: number;
+  isActive: boolean;
+  expiresAt: string | null;
+  stripeCouponId: string | null;
+  stripePromotionCodeId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PromoCodeListResponse {
+  success: boolean;
+  message: string;
+  data: PromoCode[];
+}
+
+export interface CreatePromoCodeRequest {
+  code: string;
+  discount: number | string;
+  maxUses: number | string;
+  expiresAt?: string;
+}
+
+export interface CreatePromoCodeResponse {
+  success: boolean;
+  message: string;
+  data: PromoCode;
+}
+
+export interface DeletePromoCodeResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+  };
 }
 
 // ============ DASHBOARD API FUNCTIONS ============
@@ -429,6 +474,49 @@ export const dashboardApi = {
 
   // ============ SUBSCRIPTION API FUNCTIONS ============
   
+  // Get subscription package
+  getSubscriptionPackage: async (): Promise<GetSubscriptionPackageResponse> => {
+    try {
+      const response = await axiosClient.get<GetSubscriptionPackageResponse>("/api/subscription/package");
+      return response.data;
+    } catch (error: any) {
+      console.log("Get Subscription Package API Error:", error);
+      
+      let errorMessage = "Failed to fetch subscription package.";
+      
+      // Handle different error response structures
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      // Return error response
+      const errorResponse: GetSubscriptionPackageResponse = {
+        success: false,
+        message: errorMessage,
+        data: {
+          id: "",
+          name: "",
+          title: "",
+          description: [],
+          amount: 0,
+          currency: "usd",
+          duration: "",
+          stripeProductId: "",
+          stripePriceId: "",
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      };
+      
+      throw errorResponse;
+    }
+  },
+
   // Create new subscription package
   createSubscriptionPackage: async (data: CreateSubscriptionPackageRequest): Promise<CreateSubscriptionPackageResponse> => {
     try {
@@ -484,39 +572,116 @@ export const dashboardApi = {
     }
   },
 
-  // Get all subscription packages
-  getSubscriptionPackages: async (): Promise<GetSubscriptionPackagesResponse> => {
-    try {
-      const response = await axiosClient.get<GetSubscriptionPackagesResponse>("/api/subscription/package");
-      return response.data;
-    } catch (error: any) {
-      console.log("Get Subscription Packages API Error:", error);
-      
-      let errorMessage = "Failed to fetch subscription packages.";
-      
-      // Handle different error response structures
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      // Create a custom error
-      const customError = new Error(errorMessage) as any;
-      
-      // Return structured error response
-      const errorResponse: GetSubscriptionPackagesResponse = {
-        success: false,
-        message: errorMessage,
-        data: []
-      };
-      
-      throw customError;
+  getPromoCodes: async (): Promise<PromoCodeListResponse> => {
+  try {
+    const response = await axiosClient.get<PromoCodeListResponse>("/api/subscription/promo-code");
+    return response.data;
+  } catch (error: any) {
+    console.log("Get Promo Codes API Error:", error);
+    
+    let errorMessage = "Failed to fetch promo codes.";
+    
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.response?.data?.error) {
+      errorMessage = error.response.data.error;
+    } else if (error.message) {
+      errorMessage = error.message;
     }
-  },
- 
+    
+    const errorResponse: PromoCodeListResponse = {
+      success: false,
+      message: errorMessage,
+      data: []
+    };
+    
+    throw errorResponse;
+  }
+},
 
-  
+// Create new promo code
+createPromoCode: async (data: CreatePromoCodeRequest): Promise<CreatePromoCodeResponse> => {
+  try {
+    const response = await axiosClient.post<CreatePromoCodeResponse>(
+      "/api/subscription/promo-code",
+      data,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    
+    return response.data;
+  } catch (error: any) {
+    console.log("Create Promo Code API Error:", error);
+    
+    let errorMessage = "Failed to create promo code.";
+    
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.response?.data?.error) {
+      errorMessage = error.response.data.error;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    const customError = new Error(errorMessage) as any;
+    
+    const errorResponse: CreatePromoCodeResponse = {
+      success: false,
+      message: errorMessage,
+      data: {
+        id: "",
+        code: data.code,
+        discount: typeof data.discount === 'string' ? parseInt(data.discount) : data.discount,
+        maxUses: typeof data.maxUses === 'string' ? parseInt(data.maxUses) : data.maxUses,
+        usedCount: 0,
+        isActive: true,
+        expiresAt: data.expiresAt || null,
+        stripeCouponId: null,
+        stripePromotionCodeId: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    };
+    
+    throw customError;
+  }
+},
+
+// Delete promo code
+deletePromoCode: async (id: string): Promise<DeletePromoCodeResponse> => {
+  try {
+    const response = await axiosClient.delete<DeletePromoCodeResponse>(
+      `/api/subscription/promo-code/${id}`
+    );
+    
+    return response.data;
+  } catch (error: any) {
+    console.log("Delete Promo Code API Error:", error);
+    
+    let errorMessage = "Failed to delete promo code.";
+    
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.response?.data?.error) {
+      errorMessage = error.response.data.error;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    const customError = new Error(errorMessage) as any;
+    
+    const errorResponse: DeletePromoCodeResponse = {
+      success: false,
+      message: errorMessage,
+      data: {
+        id: id
+      }
+    };
+    
+    throw customError;
+  }
+}
 };
