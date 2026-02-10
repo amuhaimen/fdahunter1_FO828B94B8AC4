@@ -208,6 +208,39 @@ export interface DeletePromoCodeResponse {
   };
 }
 
+export interface UsersStats {
+  totalUsersTrend: string;
+  activeUsersTrend: string;
+  promoUsersTrend: string;
+  newUsersToday: number;
+}
+
+export interface UsersStatsResponse {
+  success: boolean;
+  message: string;
+  data: UsersStats;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  avatar: string | null;
+  status: string;
+  plan: string;
+  amount: number;
+  promoCode: string;
+  isSubscriber: boolean;
+}
+
+export interface UsersListResponse {
+  success: boolean;
+  message: string;
+  data: User[];
+  pagination: PaginationInfo;
+}
+
 // ============ DASHBOARD API FUNCTIONS ============
 export const dashboardApi = {
   // Get dashboard statistics
@@ -683,5 +716,95 @@ deletePromoCode: async (id: string): Promise<DeletePromoCodeResponse> => {
     
     throw customError;
   }
-}
+},
+
+// Add this function to the dashboardApi object
+
+  // Get users statistics
+  getUsersStats: async (): Promise<UsersStatsResponse> => {
+    try {
+      const response = await axiosClient.get<UsersStatsResponse>("/api/users/stats");
+      return response.data;
+    } catch (error: any) {
+      console.log("Users Stats API Error:", error);
+      
+      let errorMessage = "Failed to fetch users statistics.";
+      
+      // Handle different error response structures
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      // Return error response with default data
+      const errorResponse: UsersStatsResponse = {
+        success: false,
+        message: errorMessage,
+        data: {
+          totalUsersTrend: "0",
+          activeUsersTrend: "0",
+          promoUsersTrend: "0",
+          newUsersToday: 0
+        }
+      };
+      
+      throw errorResponse;
+    }
+  },
+
+  // Add to the dashboardApi object in dashboardApi.ts
+
+  // Get all users with pagination
+  getAllUsers: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    promoCode?: string;
+  }): Promise<UsersListResponse> => {
+    try {
+      const response = await axiosClient.get<UsersListResponse>("/api/users/all", {
+        params: {
+          page: params?.page || 1,
+          limit: params?.limit || 10,
+          search: params?.search,
+          status: params?.status,
+          promoCode: params?.promoCode,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.log("Users API Error:", error);
+      
+      let errorMessage = "Failed to fetch users.";
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      const errorResponse: UsersListResponse = {
+        success: false,
+        message: errorMessage,
+        data: [],
+        pagination: {
+          totalItems: 0,
+          totalPages: 0,
+          currentPage: params?.page || 1,
+          itemsPerPage: params?.limit || 10,
+          hasNextPage: false,
+          hasPrevPage: false
+        }
+      };
+      
+      throw errorResponse;
+    }
+  },
+
 };

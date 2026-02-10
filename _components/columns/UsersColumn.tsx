@@ -1,19 +1,17 @@
 import React from "react";
 
-interface UserData {
-  id?: string;
-  name: string;
-  avatar?: string;
-}
-
+// Update interface to match API response
 interface UserRowData {
-  user: UserData;
+  id: string;
+  name: string;
   email: string;
+  createdAt: string;
+  avatar: string | null;
+  status: string;
   plan: string;
-  registeredDate: string;
-  status: 'active' | 'trial' | 'expired';
   amount: number;
-  promoCode?: string;
+  promoCode: string;
+  isSubscriber: boolean;
 }
 
 // Define the column configuration for Users
@@ -21,16 +19,19 @@ export const UsersColumn = [
   {
     label: "User",
     width: "25%",
-    accessor: "user" as keyof UserRowData,
+    accessor: "name" as keyof UserRowData,
     sortable: true,
-    formatter: (value: UserData) => {
+    formatter: (value: string, row?: UserRowData) => {
+      const avatar = row?.avatar;
+      const name = value || "Unknown User";
+      
       return (
         <div className="flex items-center gap-3">
-          {value?.avatar ? (
+          {avatar ? (
             <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-700">
               <img 
-                src={value.avatar} 
-                alt={value.name || "User"}
+                src={avatar} 
+                alt={name}
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
@@ -42,13 +43,13 @@ export const UsersColumn = [
           ) : (
             <div className="w-10 h-10 rounded-full bg-[#323B49] flex items-center justify-center">
               <span className="text-white font-medium text-sm">
-                {value?.name?.charAt(0)?.toUpperCase() || "U"}
+                {name?.charAt(0)?.toUpperCase() || "U"}
               </span>
             </div>
           )}
           <div className="flex flex-col">
             <span className="text-white text-sm font-medium">
-              {value?.name || "Unknown User"}
+              {name}
             </span>
           </div>
         </div>
@@ -74,22 +75,34 @@ export const UsersColumn = [
     accessor: "plan" as keyof UserRowData,
     sortable: true,
     formatter: (value: string) => {
+      // Map API plan values to your design
+      const planMapping: Record<string, string> = {
+        'New Plan': 'Premium',
+        'N/A': 'Free',
+        'Enterprise': 'Enterprise',
+        'Pro': 'Pro',
+        'Basic': 'Basic'
+      };
+      
+      const displayPlan = planMapping[value] || value;
+      
       const planColors: Record<string, string> = {
         'Premium': 'text-[#00F474] bg-[#15673C]',
         'Pro': 'text-[#4F46E5] bg-[#1E1B4B]',
         'Basic': 'text-[#F59E0B] bg-[#78350F]',
         'Free': 'text-gray-400 bg-gray-800',
         'Enterprise': 'text-[#8B5CF6] bg-[#3B0764]',
+        'New Plan': 'text-[#00F474] bg-[#15673C]', // Map New Plan to Premium
       };
       
-      const colorClass = planColors[value] || 'text-[#0CAF60] bg-[#E7F7EF]';
+      const colorClass = planColors[displayPlan] || 'text-[#0CAF60] bg-[#E7F7EF]';
       const [textColor, bgColor] = colorClass.split(' ');
       
       return (
         <div className="flex items-center">
           <div className={`px-3 py-1.5 rounded-lg ${bgColor}`}>
             <span className={`text-sm font-medium ${textColor}`}>
-              {value}
+              {displayPlan}
             </span>
           </div>
         </div>
@@ -99,7 +112,7 @@ export const UsersColumn = [
   {
     label: "Registered",
     width: "15%",
-    accessor: "registeredDate" as keyof UserRowData,
+    accessor: "createdAt" as keyof UserRowData,
     sortable: true,
     formatter: (value: string) => {
       const date = new Date(value);
@@ -119,7 +132,16 @@ export const UsersColumn = [
     width: "10%",
     accessor: "status" as keyof UserRowData,
     sortable: true,
-    formatter: (value: 'active' | 'trial' | 'expired') => {
+    formatter: (value: string) => {
+      // Map API status to your design status
+      const statusMapping: Record<string, 'active' | 'trial' | 'expired'> = {
+        'Active': 'active',
+        'Expired': 'expired',
+        'Trial': 'trial'
+      };
+      
+      const mappedStatus = statusMapping[value] || 'expired';
+      
       const statusConfig = {
         active: {
           text: "Active",
@@ -138,7 +160,7 @@ export const UsersColumn = [
         }
       };
       
-      const config = statusConfig[value] || statusConfig.expired;
+      const config = statusConfig[mappedStatus];
       
       return (
         <div className={`px-3 py-1.5 inline rounded-lg ${config.bgColor}`}>
@@ -177,14 +199,17 @@ export const UsersColumn = [
     width: "15%",
     accessor: "promoCode" as keyof UserRowData,
     sortable: true,
-    formatter: (value?: string) => {
+    formatter: (value: string) => {
+      const hasPromoCode = value && value !== "-";
+      
       return (
-        <span className={`text-sm ${value ? 'text-white' : 'text-gray-500'}`}>
-          {value || "No code"}
+        <span className={`text-sm ${hasPromoCode ? 'text-white' : 'text-gray-500'}`}>
+          {hasPromoCode ? value : "No code"}
         </span>
       );
     },
   },
+ 
 ];
 
 // Type for the column configuration

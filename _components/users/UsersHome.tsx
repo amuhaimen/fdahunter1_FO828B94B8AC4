@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DoubleUsersl from "../icons/users/DoubleUsersl";
 import TikUsers from "../icons/users/TikUsers";
 import PlusUsers from "../icons/users/PlusUsers";
@@ -9,7 +9,9 @@ import { SearchBar } from "../reusable/SearchBar";
 import CustomDropdown from "../reusable/CustomDropdown";
 import DynamicTable from "../reusable/DynamicTable";
 import { UsersColumn } from "../columns/UsersColumn";
-import usersData from "../data/usersData.json";
+import DynamicPagination from "../reusable/DynamicPagination";
+import { dashboardApi } from "@/services/dashboardApi";
+import { User, UsersListResponse } from "@/services/dashboardApi";
 
 interface StatCardProps {
   title: string;
@@ -19,37 +21,146 @@ interface StatCardProps {
 }
 
 export default function UsersHome() {
-  const [categories, setSelectedCategories] = useState("");
+  // State for filters
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [promoCodeFilter, setPromoCodeFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Stats state
+  const [stats, setStats] = useState({
+    totalUsersTrend: "0",
+    activeUsersTrend: "0",
+    promoUsersTrend: "0",
+    newUsersToday: 0
+  });
+  
+  // Users list state
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasPrevPage, setHasPrevPage] = useState(false);
 
-  const categoriesOption = [
-    { value: "sports", label: "Sports" },
-    { value: "stocks", label: "Stocks" },
-    { value: "casino", label: "Casino" },
+  // Filter options
+  const statusOptions = [
+    { value: "all", label: "All Status" },
+    { value: "active", label: "Active" },
+    { value: "expired", label: "Expired" }
   ];
 
+  const promoCodeOptions = [
+    { value: "all", label: "All Promo Codes" },
+    { value: "used", label: "Used" },
+    { value: "unused", label: "Not Used" }
+  ];
+
+  // Fetch users statistics
+  const fetchUsersStats = async () => {
+    try {
+      const response = await dashboardApi.getUsersStats();
+      if (response.success) {
+        setStats(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch users stats:", error);
+    }
+  };
+
+  // Fetch users list with filters and pagination
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const params = {
+        page: currentPage,
+        limit: itemsPerPage,
+        search: searchTerm || undefined,
+        status: statusFilter !== "all" ? statusFilter : undefined,
+        promoCode: promoCodeFilter !== "all" ? promoCodeFilter : undefined,
+      };
+
+      const response: UsersListResponse = await dashboardApi.getAllUsers(params);
+      if (response.success) {
+        setUsers(response.data);
+        setTotalItems(response.pagination.totalItems);
+        setTotalPages(response.pagination.totalPages);
+        setCurrentPage(response.pagination.currentPage);
+        setItemsPerPage(response.pagination.itemsPerPage);
+        setHasNextPage(response.pagination.hasNextPage);
+        setHasPrevPage(response.pagination.hasPrevPage);
+      }
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+      // Reset on error
+      setUsers([]);
+      setTotalItems(0);
+      setTotalPages(0);
+      setHasNextPage(false);
+      setHasPrevPage(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle search with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCurrentPage(1); // Reset to first page when searching
+      fetchUsers();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, statusFilter, promoCodeFilter]);
+
+  // Fetch users when pagination changes
+  useEffect(() => {
+    fetchUsers();
+  }, [currentPage, itemsPerPage]);
+
+  // Fetch stats on component mount
+  useEffect(() => {
+    fetchUsersStats();
+    fetchUsers();
+  }, []);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Handle items per page change
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset to first page
+  };
+
+  // Prepare stat cards data with actual API data
   const statCardsData: StatCardProps[] = [
     {
       title: "Total Users",
-      value: "2,847",
+      value: stats.totalUsersTrend, // Show the API trend value directly
       period: "vs last month",
       icon: <DoubleUsersl />,
     },
     {
       title: "Active Users",
-      value: "2,234",
+      value: stats.activeUsersTrend, // Show the API trend value directly
       period: "vs last month",
       icon: <TikUsers />,
     },
     {
       title: "New Today",
-      value: 18,
+      value: stats.newUsersToday, // Show the API value directly
       period: "vs last month",
       icon: <PlusUsers />,
     },
     {
       title: "Promo code Users",
-      value: "54%",
+      value: stats.promoUsersTrend, // Show the API trend value directly
       period: "vs last month",
       icon: <Token />,
     },
@@ -86,30 +197,29 @@ export default function UsersHome() {
       </div>
 
       <div className="bg-[#0E121B] p-6 rounded-2xl mt-4.5">
-        <h3 className=" text-white text-xl font-bold">Users</h3>
+        <h3 className="text-white text-xl font-bold">Users</h3>
 
         <div className="mt-5 flex flex-col lg:flex-row items-center w-full gap-3.5">
           <SearchBar
-            placeholder="Search Picks"
+            placeholder="Search by email"
             value={searchTerm}
             onChange={(value) => {
               setSearchTerm(value);
-              // setCurrentPage(1);
             }}
             className="flex-1"
           />
           <CustomDropdown
-            options={categoriesOption}
-            value={categories}
-            onChange={setSelectedCategories}
-            placeholder="Select categories"
+            options={statusOptions}
+            value={statusFilter}
+            onChange={setStatusFilter}
+            placeholder="Select status"
             className="flex-1 w-full"
           />
           <CustomDropdown
-            options={categoriesOption}
-            value={categories}
-            onChange={setSelectedCategories}
-            placeholder="Select status"
+            options={promoCodeOptions}
+            value={promoCodeFilter}
+            onChange={setPromoCodeFilter}
+            placeholder="Select promo code"
             className="flex-1 w-full"
           />
         </div>
@@ -117,8 +227,7 @@ export default function UsersHome() {
         <div className="mt-6">
           <DynamicTable
             columns={UsersColumn}
-            data={usersData}
-            // Don't pass pagination props to DynamicTable since we're handling externally
+            data={users}
             hasWrapperBorder={false}
             headerStyles={{
               backgroundColor: "#323B49",
@@ -130,23 +239,25 @@ export default function UsersHome() {
             roundedClass="rounded-b-none"
             minWidth={800}
             cellBorderColor="#323B49"
+            // isLoading={isLoading}
           />
 
-          {/* <div className=" ">
-                    <DynamicPagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      hasNextPage={hasNextPage}
-                      hasPrevPage={hasPrevPage}
-                      onPageChange={handlePageChange}
-                      totalItems={totalItems}
-                      itemsPerPage={itemsPerPage}
-                      onItemsPerPageChange={handleItemsPerPageChange}
-                      itemsPerPageOptions={[2, 5, 10, 15, 20, 25, 30, 50]}
-                      showItemsPerPage={true}
-                      show={totalItems > 0}
-                    />
-                  </div> */}
+          <div className="mt-4">
+            <DynamicPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              hasNextPage={hasNextPage}
+              hasPrevPage={hasPrevPage}
+              onPageChange={handlePageChange}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              itemsPerPageOptions={[2, 5, 10, 15, 20, 25, 30, 50]}
+              showItemsPerPage={true}
+              show={totalItems > 0}
+              // isLoading={isLoading}
+            />
+          </div>
         </div>
       </div>
     </div>

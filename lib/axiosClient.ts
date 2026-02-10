@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from "axios";
 
 const axiosClient: AxiosInstance = axios.create({
-  baseURL: "http://192.168.7.102:4010",
+  baseURL: "http://192.168.7.12:4000",
   //  process.env.NEXT_PUBLIC_API_BASE_URL || "http://192.168.7.102:4010",
   headers: {
     "Content-Type": "application/json",
